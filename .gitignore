@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Parking.Ingest.Camera/appsettings.json
+/Parking.AppHost/appsettings.json
+/Parking.Operator.WinForms/appsettings.json
