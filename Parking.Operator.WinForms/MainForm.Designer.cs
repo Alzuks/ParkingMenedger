@@ -124,10 +124,11 @@
             // 
             // lblCapacity
             // 
+            lblCapacity.BackColor = SystemColors.ControlLight;
             lblCapacity.Font = new Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lblCapacity.Location = new Point(67, 35);
+            lblCapacity.Location = new Point(67, 33);
             lblCapacity.Name = "lblCapacity";
-            lblCapacity.Size = new Size(133, 38);
+            lblCapacity.Size = new Size(133, 40);
             lblCapacity.TabIndex = 2;
             lblCapacity.Text = "90/150";
             lblCapacity.TextAlign = ContentAlignment.MiddleCenter;

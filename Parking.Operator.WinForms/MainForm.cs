@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Parking.Operator.WinForms.Models; // если DTO у теб€ в Models
 using System;
 using System.ComponentModel;
@@ -15,14 +16,22 @@ public partial class MainForm : Form
 
     // кеш загруженных картинок по url, чтобы не качать одно и то же каждые 5 секунд
     private readonly Dictionary<string, (Image Img, DateTime LoadedAt)> _imageCache = new();
+    
     private readonly TimeSpan _imageCacheTtl = TimeSpan.FromMinutes(2);
 
     public MainForm()
     {
         InitializeComponent();
 
-        // TODO: вынести потом в конфиг
-        _api = new ApiClient("http://localhost:5291/");
+        var config = new ConfigurationBuilder()
+    .SetBasePath(AppContext.BaseDirectory)
+    .AddJsonFile("appsettings.json", optional: false)
+    .Build();
+
+        var baseUrl = config["Api:BaseUrl"];
+
+        _api = new ApiClient(baseUrl);
+
 
         SetupGrid();
         WireUi();
@@ -212,6 +221,8 @@ public partial class MainForm : Form
         };
     }
 
+
+
     private void SetGridImage(Image? img)
     {
         carGrid.SizeMode = PictureBoxSizeMode.Zoom;
@@ -259,7 +270,7 @@ public partial class MainForm : Form
             stLastUpdate.Text = $"ќбновлено: {DateTime.Now:dd.MM.yyyy HH:mm:ss}";
 
             SetServerOk("OK");
-            BindGrid(dto.GridRows);
+            //BindGrid(dto.GridRows);
 
             RestoreGridPosition(selectedId, firstVisible);
 
@@ -322,8 +333,10 @@ public partial class MainForm : Form
 
         lblOperatorName.Text = dto.Operator.FullName;
 
-        // фото оператора Ч тоже можно грузить как фото карточек (пока просто сбросим)
-        // ѕотом: отдельный LoadOperatorPhoto(dto.Operator.PhotoUrl)
+        lblData.Text = DateTime.Now.ToString("dd.MM.yyyy");
+
+        // фото оператора Ч  грузить как фото карточек 
+        // отдельный LoadOperatorPhoto(dto.Operator.PhotoUrl)
         if (string.IsNullOrWhiteSpace(dto.Operator.PhotoUrl))
         {
             var old = pbOperatorPhoto.Image;
