@@ -16,7 +16,7 @@ public partial class MainForm : Form
 
     // кеш загруженных картинок по url, чтобы не качать одно и то же каждые 5 секунд
     private readonly Dictionary<string, (Image Img, DateTime LoadedAt)> _imageCache = new();
-    
+
     private readonly TimeSpan _imageCacheTtl = TimeSpan.FromMinutes(2);
 
     public MainForm()
@@ -334,6 +334,7 @@ public partial class MainForm : Form
         lblOperatorName.Text = dto.Operator.FullName;
 
         lblData.Text = DateTime.Now.ToString("dd.MM.yyyy");
+        lblTime.Text = DateTime.Now.ToString("HH.MM");
 
         // фото оператора —  грузить как фото карточек 
         // отдельный LoadOperatorPhoto(dto.Operator.PhotoUrl)
@@ -474,6 +475,16 @@ public partial class MainForm : Form
     private void btnRefresh_Click(object sender, EventArgs e)
     {
         this.txtSearch.Text = "";
+    }
+
+    private void HeaderTableLayout_Paint(object sender, PaintEventArgs e)
+    {
+
+    }
+
+    private void lblCapacity_Click(object sender, EventArgs e)
+    {
+
     }
 }
 
