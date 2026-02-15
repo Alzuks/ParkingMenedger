@@ -76,8 +76,21 @@ public partial class MainForm : Form
 
     private void Card_DoubleClick(object? sender, long sessionId)
     {
-        // if (sessionId <= 0) return;
-        MessageBox.Show($"ќткрыть карточку/оплату дл€ SessionId={sessionId}", "TODO");
+        long? passageId = sessionId > 0 ? sessionId : null;
+
+        // PlateNorm можем не знать Ч дл€ теста UI ок.
+        OpenVehicleRegistrationForm(passageId, plateNorm: null);
+    }
+    private void OpenVehicleRegistrationForm(long? passageId, string? plateNorm)
+    {
+        var frm = new VehicleRegistrationForm
+        {
+            StartPosition = FormStartPosition.CenterParent,
+            PassageId = passageId,
+            PlateNorm = plateNorm
+        };
+
+        frm.ShowDialog(this);
     }
 
 
@@ -124,7 +137,6 @@ public partial class MainForm : Form
 
         gridHistory.Columns.Clear();
 
-        //  олонки Ч можешь подстроить ширины
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
         {
             Name = "colTime",
@@ -296,6 +308,7 @@ public partial class MainForm : Form
         }
     }
 
+
     private void RestoreGridPosition(long? selectedId, int firstVisible)
     {
         if (gridHistory.Rows.Count == 0)
@@ -334,7 +347,7 @@ public partial class MainForm : Form
         lblOperatorName.Text = dto.Operator.FullName;
 
         lblData.Text = DateTime.Now.ToString("dd.MM.yyyy");
-        lblTime.Text = DateTime.Now.ToString("HH.MM");
+        lblTime.Text = DateTime.Now.ToString("HH:mm");
 
         // фото оператора Ч  грузить как фото карточек 
         // отдельный LoadOperatorPhoto(dto.Operator.PhotoUrl)

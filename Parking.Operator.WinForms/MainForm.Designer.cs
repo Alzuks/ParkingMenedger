@@ -78,26 +78,25 @@
             MainTableLayer.Controls.Add(tableLayoutPanel1, 0, 2);
             MainTableLayer.Dock = DockStyle.Fill;
             MainTableLayer.Location = new Point(0, 0);
-            MainTableLayer.Margin = new Padding(3, 4, 3, 4);
             MainTableLayer.Name = "MainTableLayer";
             MainTableLayer.RowCount = 3;
-            MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Absolute, 131F));
+            MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Absolute, 103F));
             MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Percent, 60.4368935F));
             MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Percent, 39.5631065F));
-            MainTableLayer.Size = new Size(1810, 955);
+            MainTableLayer.Size = new Size(1584, 754);
             MainTableLayer.TabIndex = 0;
             // 
             // HeaderTableLayout
             // 
             HeaderTableLayout.ColumnCount = 8;
-            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 274F));
-            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 211F));
-            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 148F));
-            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 297F));
-            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 157F));
-            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 236F));
-            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 251F));
-            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 52F));
+            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 240F));
+            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 185F));
+            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130F));
+            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 260F));
+            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 137F));
+            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 206F));
+            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 220F));
+            HeaderTableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 201F));
             HeaderTableLayout.Controls.Add(lblShift, 4, 0);
             HeaderTableLayout.Controls.Add(pnlCapacity, 3, 0);
             HeaderTableLayout.Controls.Add(DateShiftTableLayout, 5, 0);
@@ -107,12 +106,11 @@
             HeaderTableLayout.Controls.Add(pbLogo, 0, 0);
             HeaderTableLayout.Controls.Add(pbOperatorPhoto, 7, 0);
             HeaderTableLayout.Dock = DockStyle.Fill;
-            HeaderTableLayout.Location = new Point(3, 4);
-            HeaderTableLayout.Margin = new Padding(3, 4, 3, 4);
+            HeaderTableLayout.Location = new Point(3, 3);
             HeaderTableLayout.Name = "HeaderTableLayout";
             HeaderTableLayout.RowCount = 1;
             HeaderTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            HeaderTableLayout.Size = new Size(1804, 123);
+            HeaderTableLayout.Size = new Size(1578, 97);
             HeaderTableLayout.TabIndex = 0;
             // 
             // lblShift
@@ -120,9 +118,9 @@
             lblShift.Anchor = AnchorStyles.None;
             lblShift.AutoSize = true;
             lblShift.Font = new Font("Tahoma", 36F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lblShift.Location = new Point(956, 26);
+            lblShift.Location = new Point(840, 19);
             lblShift.Name = "lblShift";
-            lblShift.Size = new Size(104, 70);
+            lblShift.Size = new Size(87, 58);
             lblShift.TabIndex = 0;
             lblShift.Text = "45";
             lblShift.TextAlign = ContentAlignment.MiddleCenter;
@@ -133,19 +131,18 @@
             pnlCapacity.Controls.Add(lblCapacity);
             pnlCapacity.Controls.Add(progressCapacity);
             pnlCapacity.Dock = DockStyle.Fill;
-            pnlCapacity.Location = new Point(636, 4);
-            pnlCapacity.Margin = new Padding(3, 4, 3, 4);
+            pnlCapacity.Location = new Point(558, 3);
             pnlCapacity.Name = "pnlCapacity";
-            pnlCapacity.Size = new Size(291, 115);
+            pnlCapacity.Size = new Size(254, 91);
             pnlCapacity.TabIndex = 7;
             // 
             // lblCapacity
             // 
             lblCapacity.BackColor = SystemColors.ControlLight;
             lblCapacity.Font = new Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lblCapacity.Location = new Point(68, 27);
+            lblCapacity.Location = new Point(60, 21);
             lblCapacity.Name = "lblCapacity";
-            lblCapacity.Size = new Size(152, 48);
+            lblCapacity.Size = new Size(133, 38);
             lblCapacity.TabIndex = 2;
             lblCapacity.Text = "90/150";
             lblCapacity.TextAlign = ContentAlignment.MiddleCenter;
@@ -154,10 +151,9 @@
             // progressCapacity
             // 
             progressCapacity.Anchor = AnchorStyles.None;
-            progressCapacity.Location = new Point(30, 14);
-            progressCapacity.Margin = new Padding(3, 4, 3, 4);
+            progressCapacity.Location = new Point(26, 11);
             progressCapacity.Name = "progressCapacity";
-            progressCapacity.Size = new Size(224, 75);
+            progressCapacity.Size = new Size(196, 59);
             progressCapacity.TabIndex = 1;
             // 
             // DateShiftTableLayout
@@ -168,22 +164,21 @@
             DateShiftTableLayout.Controls.Add(lblData, 0, 0);
             DateShiftTableLayout.Controls.Add(lblTime, 0, 1);
             DateShiftTableLayout.Dock = DockStyle.Fill;
-            DateShiftTableLayout.Location = new Point(1090, 4);
-            DateShiftTableLayout.Margin = new Padding(3, 4, 3, 4);
+            DateShiftTableLayout.Location = new Point(955, 3);
             DateShiftTableLayout.Name = "DateShiftTableLayout";
             DateShiftTableLayout.RowCount = 2;
             DateShiftTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
             DateShiftTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
-            DateShiftTableLayout.Size = new Size(230, 115);
+            DateShiftTableLayout.Size = new Size(200, 91);
             DateShiftTableLayout.TabIndex = 2;
             // 
             // lblData
             // 
             lblData.Anchor = AnchorStyles.None;
             lblData.Font = new Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lblData.Location = new Point(20, 1);
+            lblData.Location = new Point(17, 1);
             lblData.Name = "lblData";
-            lblData.Size = new Size(190, 43);
+            lblData.Size = new Size(166, 34);
             lblData.TabIndex = 1;
             lblData.Text = "14.02.2026   14:20";
             lblData.TextAlign = ContentAlignment.MiddleCenter;
@@ -192,9 +187,9 @@
             // 
             lblTime.Anchor = AnchorStyles.None;
             lblTime.Font = new Font("Segoe UI", 26.2956524F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lblTime.Location = new Point(27, 49);
+            lblTime.Location = new Point(11, 39);
             lblTime.Name = "lblTime";
-            lblTime.Size = new Size(175, 62);
+            lblTime.Size = new Size(177, 49);
             lblTime.TabIndex = 2;
             lblTime.Text = "label1";
             lblTime.TextAlign = ContentAlignment.MiddleCenter;
@@ -204,9 +199,9 @@
             lblOperatorName.Anchor = AnchorStyles.None;
             lblOperatorName.AutoSize = true;
             lblOperatorName.Font = new Font("Segoe UI", 18.1565228F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lblOperatorName.Location = new Point(1366, 1);
+            lblOperatorName.Location = new Point(1197, 0);
             lblOperatorName.Name = "lblOperatorName";
-            lblOperatorName.Size = new Size(164, 120);
+            lblOperatorName.Size = new Size(141, 97);
             lblOperatorName.TabIndex = 4;
             lblOperatorName.Text = "Мечиняну\r\nДмитрий\r\nИванович";
             // 
@@ -214,10 +209,9 @@
             // 
             btnRefresh.Anchor = AnchorStyles.Left;
             btnRefresh.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnRefresh.Location = new Point(488, 30);
-            btnRefresh.Margin = new Padding(3, 4, 3, 4);
+            btnRefresh.Location = new Point(428, 23);
             btnRefresh.Name = "btnRefresh";
-            btnRefresh.Size = new Size(93, 63);
+            btnRefresh.Size = new Size(81, 50);
             btnRefresh.TabIndex = 6;
             btnRefresh.Text = "Сброс";
             btnRefresh.UseVisualStyleBackColor = true;
@@ -227,10 +221,9 @@
             // 
             txtSearch.Anchor = AnchorStyles.None;
             txtSearch.Font = new Font("Segoe UI", 24F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            txtSearch.Location = new Point(281, 32);
-            txtSearch.Margin = new Padding(3, 4, 3, 4);
+            txtSearch.Location = new Point(246, 23);
             txtSearch.Name = "txtSearch";
-            txtSearch.Size = new Size(197, 58);
+            txtSearch.Size = new Size(173, 50);
             txtSearch.TabIndex = 5;
             txtSearch.TextAlign = HorizontalAlignment.Right;
             // 
@@ -241,10 +234,9 @@
             pbLogo.BackgroundImageLayout = ImageLayout.Zoom;
             pbLogo.ErrorImage = null;
             pbLogo.Image = Properties.Resources.Logo2;
-            pbLogo.Location = new Point(8, 4);
-            pbLogo.Margin = new Padding(3, 4, 3, 4);
+            pbLogo.Location = new Point(7, 3);
             pbLogo.Name = "pbLogo";
-            pbLogo.Size = new Size(258, 115);
+            pbLogo.Size = new Size(226, 91);
             pbLogo.SizeMode = PictureBoxSizeMode.Zoom;
             pbLogo.TabIndex = 0;
             pbLogo.TabStop = false;
@@ -252,37 +244,35 @@
             // pbOperatorPhoto
             // 
             pbOperatorPhoto.Anchor = AnchorStyles.None;
-            pbOperatorPhoto.Location = new Point(1622, 4);
-            pbOperatorPhoto.Margin = new Padding(3, 4, 3, 4);
+            pbOperatorPhoto.Location = new Point(1420, 3);
             pbOperatorPhoto.Name = "pbOperatorPhoto";
-            pbOperatorPhoto.Size = new Size(133, 115);
+            pbOperatorPhoto.Size = new Size(116, 91);
             pbOperatorPhoto.TabIndex = 3;
             pbOperatorPhoto.TabStop = false;
             // 
             // tlpLive
             // 
             tlpLive.ColumnCount = 3;
-            tlpLive.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 822F));
-            tlpLive.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 822F));
-            tlpLive.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 270F));
+            tlpLive.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 719F));
+            tlpLive.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 719F));
+            tlpLive.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 236F));
             tlpLive.Controls.Add(carCardMain, 0, 0);
             tlpLive.Controls.Add(tlpRight, 1, 0);
             tlpLive.Dock = DockStyle.Fill;
-            tlpLive.Location = new Point(3, 135);
-            tlpLive.Margin = new Padding(3, 4, 3, 4);
+            tlpLive.Location = new Point(3, 106);
             tlpLive.Name = "tlpLive";
             tlpLive.RowCount = 1;
             tlpLive.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tlpLive.Size = new Size(1804, 490);
+            tlpLive.Size = new Size(1578, 387);
             tlpLive.TabIndex = 1;
             // 
             // carCardMain
             // 
             carCardMain.Dock = DockStyle.Fill;
-            carCardMain.Location = new Point(3, 5);
-            carCardMain.Margin = new Padding(3, 5, 3, 5);
+            carCardMain.Location = new Point(3, 4);
+            carCardMain.Margin = new Padding(3, 4, 3, 4);
             carCardMain.Name = "carCardMain";
-            carCardMain.Size = new Size(816, 480);
+            carCardMain.Size = new Size(713, 379);
             carCardMain.TabIndex = 0;
             // 
             // tlpRight
@@ -295,49 +285,48 @@
             tlpRight.Controls.Add(carCard3, 0, 1);
             tlpRight.Controls.Add(carCard4, 1, 1);
             tlpRight.Dock = DockStyle.Fill;
-            tlpRight.Location = new Point(825, 4);
-            tlpRight.Margin = new Padding(3, 4, 3, 4);
+            tlpRight.Location = new Point(722, 3);
             tlpRight.Name = "tlpRight";
             tlpRight.RowCount = 2;
             tlpRight.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             tlpRight.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tlpRight.Size = new Size(816, 482);
+            tlpRight.Size = new Size(713, 381);
             tlpRight.TabIndex = 1;
             // 
             // carCard1
             // 
             carCard1.Dock = DockStyle.Fill;
-            carCard1.Location = new Point(3, 5);
-            carCard1.Margin = new Padding(3, 5, 3, 5);
+            carCard1.Location = new Point(3, 4);
+            carCard1.Margin = new Padding(3, 4, 3, 4);
             carCard1.Name = "carCard1";
-            carCard1.Size = new Size(402, 231);
+            carCard1.Size = new Size(350, 182);
             carCard1.TabIndex = 0;
             // 
             // carCard2
             // 
             carCard2.Dock = DockStyle.Fill;
-            carCard2.Location = new Point(411, 5);
-            carCard2.Margin = new Padding(3, 5, 3, 5);
+            carCard2.Location = new Point(359, 4);
+            carCard2.Margin = new Padding(3, 4, 3, 4);
             carCard2.Name = "carCard2";
-            carCard2.Size = new Size(402, 231);
+            carCard2.Size = new Size(351, 182);
             carCard2.TabIndex = 1;
             // 
             // carCard3
             // 
             carCard3.Dock = DockStyle.Fill;
-            carCard3.Location = new Point(3, 246);
-            carCard3.Margin = new Padding(3, 5, 3, 5);
+            carCard3.Location = new Point(3, 194);
+            carCard3.Margin = new Padding(3, 4, 3, 4);
             carCard3.Name = "carCard3";
-            carCard3.Size = new Size(402, 231);
+            carCard3.Size = new Size(350, 183);
             carCard3.TabIndex = 2;
             // 
             // carCard4
             // 
             carCard4.Dock = DockStyle.Fill;
-            carCard4.Location = new Point(411, 246);
-            carCard4.Margin = new Padding(3, 5, 3, 5);
+            carCard4.Location = new Point(359, 194);
+            carCard4.Margin = new Padding(3, 4, 3, 4);
             carCard4.Name = "carCard4";
-            carCard4.Size = new Size(402, 231);
+            carCard4.Size = new Size(351, 183);
             carCard4.TabIndex = 3;
             // 
             // tableLayoutPanel1
@@ -348,12 +337,11 @@
             tableLayoutPanel1.Controls.Add(gridHistory, 0, 0);
             tableLayoutPanel1.Controls.Add(carGrid, 1, 0);
             tableLayoutPanel1.Dock = DockStyle.Fill;
-            tableLayoutPanel1.Location = new Point(3, 633);
-            tableLayoutPanel1.Margin = new Padding(3, 4, 3, 4);
+            tableLayoutPanel1.Location = new Point(3, 499);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 1;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel1.Size = new Size(1804, 318);
+            tableLayoutPanel1.Size = new Size(1578, 252);
             tableLayoutPanel1.TabIndex = 2;
             // 
             // gridHistory
@@ -362,23 +350,21 @@
             gridHistory.AllowUserToDeleteRows = false;
             gridHistory.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             gridHistory.Dock = DockStyle.Fill;
-            gridHistory.Location = new Point(3, 4);
-            gridHistory.Margin = new Padding(3, 4, 3, 4);
+            gridHistory.Location = new Point(3, 3);
             gridHistory.Name = "gridHistory";
             gridHistory.ReadOnly = true;
             gridHistory.RowHeadersWidth = 49;
             gridHistory.ShowCellToolTips = false;
-            gridHistory.Size = new Size(1241, 310);
+            gridHistory.Size = new Size(1085, 246);
             gridHistory.TabIndex = 2;
             // 
             // carGrid
             // 
             carGrid.BackColor = SystemColors.AppWorkspace;
             carGrid.Dock = DockStyle.Fill;
-            carGrid.Location = new Point(1250, 4);
-            carGrid.Margin = new Padding(3, 4, 3, 4);
+            carGrid.Location = new Point(1094, 3);
             carGrid.Name = "carGrid";
-            carGrid.Size = new Size(551, 310);
+            carGrid.Size = new Size(481, 246);
             carGrid.TabIndex = 3;
             carGrid.TabStop = false;
             // 
@@ -389,32 +375,29 @@
             // stServer
             // 
             stServer.ImageScalingSize = new Size(19, 19);
-            stServer.Location = new Point(0, 933);
+            stServer.Location = new Point(0, 732);
             stServer.Name = "stServer";
-            stServer.Padding = new Padding(1, 0, 16, 0);
-            stServer.Size = new Size(1810, 22);
+            stServer.Size = new Size(1584, 22);
             stServer.TabIndex = 1;
             stServer.Text = "Сервер...";
             // 
             // stLastUpdate
             // 
             stLastUpdate.ImageScalingSize = new Size(19, 19);
-            stLastUpdate.Location = new Point(0, 911);
+            stLastUpdate.Location = new Point(0, 710);
             stLastUpdate.Name = "stLastUpdate";
-            stLastUpdate.Padding = new Padding(1, 0, 16, 0);
-            stLastUpdate.Size = new Size(1810, 22);
+            stLastUpdate.Size = new Size(1584, 22);
             stLastUpdate.TabIndex = 2;
             stLastUpdate.Text = "Обновлено: -";
             // 
             // MainForm
             // 
-            AutoScaleDimensions = new SizeF(8F, 19F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1810, 955);
+            ClientSize = new Size(1584, 754);
             Controls.Add(stLastUpdate);
             Controls.Add(stServer);
             Controls.Add(MainTableLayer);
-            Margin = new Padding(3, 4, 3, 4);
             Name = "MainForm";
             Text = "Form1";
             MainTableLayer.ResumeLayout(false);
