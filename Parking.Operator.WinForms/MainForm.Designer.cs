@@ -82,9 +82,9 @@
             MainTableLayer.Name = "MainTableLayer";
             MainTableLayer.RowCount = 3;
             MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Absolute, 131F));
-            MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
-            MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
-            MainTableLayer.Size = new Size(1810, 985);
+            MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Percent, 60.4368935F));
+            MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Percent, 39.5631065F));
+            MainTableLayer.Size = new Size(1810, 955);
             MainTableLayer.TabIndex = 0;
             // 
             // HeaderTableLayout
@@ -273,7 +273,7 @@
             tlpLive.Name = "tlpLive";
             tlpLive.RowCount = 1;
             tlpLive.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tlpLive.Size = new Size(1804, 504);
+            tlpLive.Size = new Size(1804, 490);
             tlpLive.TabIndex = 1;
             // 
             // carCardMain
@@ -282,7 +282,7 @@
             carCardMain.Location = new Point(3, 5);
             carCardMain.Margin = new Padding(3, 5, 3, 5);
             carCardMain.Name = "carCardMain";
-            carCardMain.Size = new Size(816, 494);
+            carCardMain.Size = new Size(816, 480);
             carCardMain.TabIndex = 0;
             // 
             // tlpRight
@@ -301,7 +301,7 @@
             tlpRight.RowCount = 2;
             tlpRight.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             tlpRight.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tlpRight.Size = new Size(816, 496);
+            tlpRight.Size = new Size(816, 482);
             tlpRight.TabIndex = 1;
             // 
             // carCard1
@@ -310,7 +310,7 @@
             carCard1.Location = new Point(3, 5);
             carCard1.Margin = new Padding(3, 5, 3, 5);
             carCard1.Name = "carCard1";
-            carCard1.Size = new Size(402, 238);
+            carCard1.Size = new Size(402, 231);
             carCard1.TabIndex = 0;
             // 
             // carCard2
@@ -319,25 +319,25 @@
             carCard2.Location = new Point(411, 5);
             carCard2.Margin = new Padding(3, 5, 3, 5);
             carCard2.Name = "carCard2";
-            carCard2.Size = new Size(402, 238);
+            carCard2.Size = new Size(402, 231);
             carCard2.TabIndex = 1;
             // 
             // carCard3
             // 
             carCard3.Dock = DockStyle.Fill;
-            carCard3.Location = new Point(3, 253);
+            carCard3.Location = new Point(3, 246);
             carCard3.Margin = new Padding(3, 5, 3, 5);
             carCard3.Name = "carCard3";
-            carCard3.Size = new Size(402, 238);
+            carCard3.Size = new Size(402, 231);
             carCard3.TabIndex = 2;
             // 
             // carCard4
             // 
             carCard4.Dock = DockStyle.Fill;
-            carCard4.Location = new Point(411, 253);
+            carCard4.Location = new Point(411, 246);
             carCard4.Margin = new Padding(3, 5, 3, 5);
             carCard4.Name = "carCard4";
-            carCard4.Size = new Size(402, 238);
+            carCard4.Size = new Size(402, 231);
             carCard4.TabIndex = 3;
             // 
             // tableLayoutPanel1
@@ -348,12 +348,12 @@
             tableLayoutPanel1.Controls.Add(gridHistory, 0, 0);
             tableLayoutPanel1.Controls.Add(carGrid, 1, 0);
             tableLayoutPanel1.Dock = DockStyle.Fill;
-            tableLayoutPanel1.Location = new Point(3, 647);
+            tableLayoutPanel1.Location = new Point(3, 633);
             tableLayoutPanel1.Margin = new Padding(3, 4, 3, 4);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 1;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel1.Size = new Size(1804, 334);
+            tableLayoutPanel1.Size = new Size(1804, 318);
             tableLayoutPanel1.TabIndex = 2;
             // 
             // gridHistory
@@ -368,7 +368,7 @@
             gridHistory.ReadOnly = true;
             gridHistory.RowHeadersWidth = 49;
             gridHistory.ShowCellToolTips = false;
-            gridHistory.Size = new Size(1241, 326);
+            gridHistory.Size = new Size(1241, 310);
             gridHistory.TabIndex = 2;
             // 
             // carGrid
@@ -378,7 +378,7 @@
             carGrid.Location = new Point(1250, 4);
             carGrid.Margin = new Padding(3, 4, 3, 4);
             carGrid.Name = "carGrid";
-            carGrid.Size = new Size(551, 326);
+            carGrid.Size = new Size(551, 310);
             carGrid.TabIndex = 3;
             carGrid.TabStop = false;
             // 
@@ -389,7 +389,7 @@
             // stServer
             // 
             stServer.ImageScalingSize = new Size(19, 19);
-            stServer.Location = new Point(0, 963);
+            stServer.Location = new Point(0, 933);
             stServer.Name = "stServer";
             stServer.Padding = new Padding(1, 0, 16, 0);
             stServer.Size = new Size(1810, 22);
@@ -399,7 +399,7 @@
             // stLastUpdate
             // 
             stLastUpdate.ImageScalingSize = new Size(19, 19);
-            stLastUpdate.Location = new Point(0, 941);
+            stLastUpdate.Location = new Point(0, 911);
             stLastUpdate.Name = "stLastUpdate";
             stLastUpdate.Padding = new Padding(1, 0, 16, 0);
             stLastUpdate.Size = new Size(1810, 22);
@@ -410,7 +410,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1810, 985);
+            ClientSize = new Size(1810, 955);
             Controls.Add(stLastUpdate);
             Controls.Add(stServer);
             Controls.Add(MainTableLayer);

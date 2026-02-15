@@ -130,7 +130,7 @@ public partial class MainForm : Form
             Name = "colTime",
             HeaderText = "Время",
             DataPropertyName = "Time",
-            Width = 163
+            Width = 200
         });
 
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
@@ -138,7 +138,7 @@ public partial class MainForm : Form
             Name = "colDir",
             HeaderText = "Напр",
             DataPropertyName = "Direction",
-            Width = 65
+            Width = 87
         });
 
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
