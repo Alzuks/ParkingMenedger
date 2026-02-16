@@ -245,7 +245,7 @@ public sealed record OperatorDto(
 );
 
 public sealed record CarCardDto(
-    long SessionId,
+    long passageId,
     string Plate,
     decimal Debt,
     bool IsVip,

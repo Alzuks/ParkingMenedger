@@ -7,7 +7,7 @@ public partial class CarCardControl : UserControl
     public event EventHandler<long>? CardClick;
     public event EventHandler<long>? CardDoubleClick;
 
-    public long SessionId { get; private set; }
+    public long passageId { get; private set; }
 
     public CarCardControl()
     {
@@ -26,13 +26,13 @@ public partial class CarCardControl : UserControl
 
     private void WireClickHandlers(Control c)
     {
-        c.Click += (_, __) => CardClick?.Invoke(this, SessionId);
-        c.DoubleClick += (_, __) => CardDoubleClick?.Invoke(this, SessionId);
+        c.Click += (_, __) => CardClick?.Invoke(this, passageId);
+        c.DoubleClick += (_, __) => CardDoubleClick?.Invoke(this, passageId);
     }
 
     public void Bind(CarCardDto dto)
     {
-        SessionId = dto.SessionId;
+        passageId = dto.passageId;
 
         lblPlate.Text = (dto.Plate);
 
@@ -62,7 +62,7 @@ public partial class CarCardControl : UserControl
 
     public void Clear()
     {
-        SessionId = 0;
+        passageId = 0;
         lblPlate.Text = "-";
         lblDebt.Visible = false;
         pnlBorder.BackColor = Color.Gray;

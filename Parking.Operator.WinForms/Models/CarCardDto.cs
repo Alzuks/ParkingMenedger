@@ -1,7 +1,7 @@
 ﻿namespace Parking.Operator.WinForms.Models;
 
 public sealed record CarCardDto(
-    long PassageId,      // лучше PassageId, раз это “последний проезд”
+    long PassageId,     
     string Plate,
     string Direction,    // "IN"/"OUT"
     DateTime Time,

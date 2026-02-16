@@ -184,7 +184,7 @@ public sealed class VehicleRegistrationController : ControllerBase
             OccurredAt = p.OccurredAt.LocalDateTime,
             Direction = p.Direction == 2 ? "OUT" : "IN",
             Spot = null,
-            Confidence = p.Confidence.HasValue ? p.Confidence.Value / 1000.0 : null, // под формат 0.000
+            Confidence = p.Confidence.HasValue ? p.Confidence.Value : null, // под формат 0.000
             PhotoUrl = fileName == null ? null : $"/api/photos/file?name={Uri.EscapeDataString(fileName)}"
         };
     }

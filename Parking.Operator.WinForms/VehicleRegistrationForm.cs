@@ -23,6 +23,24 @@ namespace Parking.Operator.WinForms
             SetupPassagesGrid();
             SetupPaymentsGrid();
 
+            this.KeyPreview = true;
+
+            this.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Escape)
+                {
+                    if (_editMode)
+                    {
+                        ApplyViewMode();   // отменяем редактирование
+                    }
+                    else
+                    {
+                        this.Close();      // закрываем форму
+                    }
+                }
+            };
+
+
             // события
             Shown += async (_, __) => await LoadAllAsync();
 
@@ -72,7 +90,7 @@ namespace Parking.Operator.WinForms
                 HeaderText = "Conf",
                 DataPropertyName = nameof(PassageRowDto.Confidence),
                 Width = 70,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "0.000" }
+                DefaultCellStyle = new DataGridViewCellStyle { Format = "0" }
             });
 
             dataGridView1.Columns.Add(new DataGridViewTextBoxColumn
@@ -197,7 +215,7 @@ namespace Parking.Operator.WinForms
         {
             // Данные выбранного проезда (верх справа)
             lbDate.Text = ctx.SelectedPassage?.OccurredAt.ToString("dd.MM.yyyy HH:mm:ss") ?? "-";
-            lbConfidence.Text = ctx.SelectedPassage?.Confidence?.ToString("0.000") ?? "-";
+            lbConfidence.Text = ctx.SelectedPassage?.Confidence?.ToString("0") ?? "-";
 
             // номер
             cbPlate.Text = ctx.PlateNorm ?? "";
@@ -230,7 +248,7 @@ namespace Parking.Operator.WinForms
             _ctx.SelectedPassage = p;
 
             lbDate.Text = p.OccurredAt.ToString("dd.MM.yyyy HH:mm:ss");
-            lbConfidence.Text = p.Confidence?.ToString("0.000") ?? "-";
+            lbConfidence.Text = p.Confidence?.ToString("0") ?? "-";
             cbDirection.SelectedItem = p.Direction == "IN" ? "Заехал" : "Выехал";
             tbSpot.Text = p.Spot ?? "";
 

@@ -36,11 +36,11 @@ public sealed class OwnerItemDto { public Guid OwnerId { get; set; } public stri
 // строки для гридов (UI DTO, НЕ EF Entities)
 public sealed class PassageRowDto
 {
-    public long PassageId { get; set; }                 // <= ВАЖНО: long, как в БД
-    public DateTime OccurredAt { get; set; }            // можно DateTimeOffset если хочешь
-    public string Direction { get; set; } = "IN";       // "IN"/"OUT"
+    public long PassageId { get; set; }                
+    public DateTime OccurredAt { get; set; }            
+    public string Direction { get; set; } = "IN";       
     public string? Spot { get; set; }
-    public double? Confidence { get; set; }            // short? в БД → тут удобнее double?
+    public double? Confidence { get; set; }            
     public string? PhotoUrl { get; set; }
 }
 
@@ -56,7 +56,7 @@ public sealed class PaymentRowDto
 // DTO сохранения
 public sealed class VehicleRegSaveDto
 {
-    public long PassageId { get; set; }                 // <= ВАЖНО: long
+    public long PassageId { get; set; }                 
     public string PlateNorm { get; set; } = "";
     public string Direction { get; set; } = "IN";
     public string? Spot { get; set; }

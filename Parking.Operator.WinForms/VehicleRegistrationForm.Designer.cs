@@ -185,9 +185,9 @@
             lbDate.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             lbDate.Location = new Point(156, 11);
             lbDate.Name = "lbDate";
-            lbDate.Size = new Size(65, 25);
+            lbDate.Size = new Size(17, 25);
             lbDate.TabIndex = 9;
-            lbDate.Text = "label6";
+            lbDate.Text = " ";
             // 
             // lbConfidence
             // 
@@ -196,9 +196,9 @@
             lbConfidence.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             lbConfidence.Location = new Point(156, 155);
             lbConfidence.Name = "lbConfidence";
-            lbConfidence.Size = new Size(65, 25);
+            lbConfidence.Size = new Size(17, 25);
             lbConfidence.TabIndex = 10;
-            lbConfidence.Text = "label7";
+            lbConfidence.Text = " ";
             // 
             // cbDirection
             // 
@@ -291,7 +291,7 @@
             tbSpot.ReadOnly = true;
             tbSpot.Size = new Size(52, 33);
             tbSpot.TabIndex = 14;
-            tbSpot.Text = "148";
+            tbSpot.Text = " ";
             tbSpot.TextAlign = HorizontalAlignment.Center;
             // 
             // label7
@@ -301,9 +301,9 @@
             label7.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             label7.Location = new Point(333, 686);
             label7.Name = "label7";
-            label7.Size = new Size(107, 25);
+            label7.Size = new Size(17, 25);
             label7.TabIndex = 14;
-            label7.Text = "1440 дней";
+            label7.Text = " ";
             // 
             // dgvPayments
             // 
@@ -417,9 +417,9 @@
             OwnerLastName.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 204);
             OwnerLastName.Location = new Point(658, 767);
             OwnerLastName.Name = "OwnerLastName";
-            OwnerLastName.Size = new Size(57, 20);
+            OwnerLastName.Size = new Size(14, 20);
             OwnerLastName.TabIndex = 25;
-            OwnerLastName.Text = "lname";
+            OwnerLastName.Text = " ";
             // 
             // OwnerFirstName
             // 
@@ -428,9 +428,9 @@
             OwnerFirstName.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 204);
             OwnerFirstName.Location = new Point(366, 768);
             OwnerFirstName.Name = "OwnerFirstName";
-            OwnerFirstName.Size = new Size(53, 20);
+            OwnerFirstName.Size = new Size(14, 20);
             OwnerFirstName.TabIndex = 26;
-            OwnerFirstName.Text = "name";
+            OwnerFirstName.Text = " ";
             // 
             // btnAddStatus
             // 
@@ -530,7 +530,6 @@
             tbYear.ReadOnly = true;
             tbYear.Size = new Size(59, 33);
             tbYear.TabIndex = 35;
-            tbYear.Text = "2003";
             // 
             // tbColor
             // 
@@ -540,7 +539,6 @@
             tbColor.ReadOnly = true;
             tbColor.Size = new Size(113, 33);
             tbColor.TabIndex = 36;
-            tbColor.Text = "Зелёный";
             // 
             // tbModel
             // 
@@ -550,7 +548,6 @@
             tbModel.ReadOnly = true;
             tbModel.Size = new Size(134, 33);
             tbModel.TabIndex = 37;
-            tbModel.Text = "S600";
             // 
             // tbBrand
             // 
@@ -560,7 +557,6 @@
             tbBrand.ReadOnly = true;
             tbBrand.Size = new Size(151, 33);
             tbBrand.TabIndex = 38;
-            tbBrand.Text = "Mercedes";
             // 
             // label18
             // 
@@ -581,7 +577,6 @@
             tbPhone.ReadOnly = true;
             tbPhone.Size = new Size(151, 33);
             tbPhone.TabIndex = 40;
-            tbPhone.Text = "322223322";
             // 
             // VehicleRegistrationForm
             // 

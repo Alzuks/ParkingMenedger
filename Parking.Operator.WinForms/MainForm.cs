@@ -47,7 +47,7 @@ public partial class MainForm : Form
 
     private void WireUi()
     {
-        btnRefresh.Click += async (_, __) => await ReloadDashboardAsync();
+        //btnRefresh.Click += async (_, __) => await ReloadDashboardAsync();
 
         txtSearch.TextChanged += (_, __) =>
         {
@@ -60,7 +60,6 @@ public partial class MainForm : Form
 
         timerRefresh.Tick += async (_, __) => await ReloadDashboardAsync();
 
-        // клики по карточкам (пока просто MessageBox — потом откроем форму оплаты/карточку)
         carCardMain.CardClick += Card_DoubleClick;
         carCard1.CardClick += Card_DoubleClick;
         carCard2.CardClick += Card_DoubleClick;
@@ -70,7 +69,6 @@ public partial class MainForm : Form
         {
             if (gridHistory.CurrentRow?.DataBoundItem is GridRowDto row)
             {
-                // тут уже есть и PassageId, и Plate (если распознан)
                 OpenVehicleRegistrationForm(row.PassageId, row.Plate);
             }
         };
@@ -83,11 +81,8 @@ public partial class MainForm : Form
         await ReloadDashboardAsync();
     }
 
-    private void Card_DoubleClick(object? sender, long sessionId)
+    private void Card_DoubleClick(object? sender, long passageId)
     {
-        long? passageId = sessionId > 0 ? sessionId : null;
-
-        // PlateNorm можем не знать — для теста UI ок.
         OpenVehicleRegistrationForm(passageId, plateNorm: null);
     }
     private void OpenVehicleRegistrationForm(long? passageId, string? plateNorm)
@@ -495,7 +490,7 @@ public partial class MainForm : Form
         stServer.Text = $"Сервер: {text}";
     }
 
-    private void btnRefresh_Click(object sender, EventArgs e)
+    private async void btnRefresh_Click(object sender, EventArgs e)
     {
         this.txtSearch.Text = "";
     }
