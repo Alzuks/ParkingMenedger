@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using Parking.Operator.WinForms.Models;
+using System.Drawing;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -85,7 +86,42 @@ public sealed class ApiClient : IDisposable
 
         return await GetJsonOrThrowAsync<OperatorDashboardDto>(url, ct);
     }
-    
+
+    // -----------------------------
+    // VEHICLE REGISTRATION (new form)
+    // -----------------------------
+
+    /// <summary>
+    /// Контекст для формы VehicleRegistration:
+    /// - выбранный проезд (по passageId)
+    /// - vehicle (если есть по plateNorm)
+    /// - последние проезды, оплаты
+    /// - справочники (тарифы/статусы/владельцы/список номеров)
+    /// Endpoint: GET /api/vehicle-registration/context?passageId=...&plateNorm=...
+    /// </summary>
+    public async Task<VehicleRegContextDto> GetVehicleRegContextAsync(long? passageId, string? plateNorm, CancellationToken ct = default)
+    {
+        var url =
+            $"api/vehicle-registration/context?passageId={(passageId?.ToString() ?? "")}" +
+            $"&plateNorm={Uri.EscapeDataString(plateNorm ?? "")}";
+
+        return await GetJsonOrThrowAsync<VehicleRegContextDto>(url, ct);
+    }
+
+    /// <summary>
+    /// Сохранение правок (номер/направление/поля авто и т.д.)
+    /// Endpoint: POST /api/vehicle-registration/save
+    /// Сервер внутри:
+    /// - создаёт vehicle если нет
+    /// - привязывает passage к plateNorm/vehicle
+    /// - пересчитывает сессии если поменялся номер или направление
+    /// </summary>
+    public async Task SaveVehicleRegistrationAsync(VehicleRegSaveDto dto, CancellationToken ct = default)
+    {
+        await PostJsonOrThrowAsync("api/vehicle-registration/save", dto, ct);
+    }
+
+
     /// <summary>
     /// Скачивание изображения по относительному url (например "api/photos/123")
     /// или абсолютному url.
@@ -142,6 +178,14 @@ public sealed class ApiClient : IDisposable
 
         return data;
     }
+    private async Task PostJsonOrThrowAsync<TBody>(string relativeUrl, TBody body, CancellationToken ct)
+    {
+        using var resp = await _http.PostAsJsonAsync(relativeUrl, body, _json, ct);
+
+        if (!resp.IsSuccessStatusCode)
+            throw await ApiException.FromHttpAsync(resp, ct);
+    }
+
 }
 
 /// <summary>

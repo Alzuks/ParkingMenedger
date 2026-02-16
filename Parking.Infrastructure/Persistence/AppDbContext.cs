@@ -28,7 +28,6 @@ public sealed class AppDbContext : DbContext
         {
             e.ToTable("passages");
             e.HasKey(x => x.Id);
-
             e.Property(x => x.OccurredAt).IsRequired();
             e.Property(x => x.PlateRaw).HasMaxLength(32).IsRequired();
             e.Property(x => x.PlateNorm).HasMaxLength(32).IsRequired();
@@ -44,7 +43,6 @@ public sealed class AppDbContext : DbContext
         {
             e.ToTable("parking_sessions");
             e.HasKey(x => x.Id);
-
             e.Property(x => x.PlateNorm).HasMaxLength(32).IsRequired();
             e.Property(x => x.OpenedAt).IsRequired();
             e.Property(x => x.ClosedAt);
@@ -57,8 +55,8 @@ public sealed class AppDbContext : DbContext
         modelBuilder.Entity<OwnerRow>(e =>
         {
             e.ToTable("owners");
+            e.Property(x => x.Id).HasColumnName("id");
             e.HasKey(x => x.Id);
-
             e.Property(x => x.Surname).HasMaxLength(128).IsRequired();
             e.Property(x => x.FirstName).HasMaxLength(128).IsRequired();
             e.Property(x => x.LastName).HasMaxLength(128);
@@ -73,8 +71,8 @@ public sealed class AppDbContext : DbContext
         modelBuilder.Entity<VehicleRow>(e =>
         {
             e.ToTable("vehicles");
+            e.Property(x => x.Id).HasColumnName("id");
             e.HasKey(x => x.Id);
-
             e.Property(x => x.PlateNorm).HasMaxLength(32).IsRequired();
             e.Property(x => x.PlateRaw).HasMaxLength(32);
             e.Property(x => x.Brand).HasMaxLength(64);
@@ -115,7 +113,6 @@ public sealed class AppDbContext : DbContext
         {
             e.ToTable("employees");
             e.HasKey(x => x.Id);
-
             e.Property(x => x.Surname).HasMaxLength(128).IsRequired();
             e.Property(x => x.FirstName).HasMaxLength(128).IsRequired();
             e.Property(x => x.LastName).HasMaxLength(128);
@@ -132,7 +129,6 @@ public sealed class AppDbContext : DbContext
         {
             e.ToTable("places");
             e.HasKey(x => x.Id);
-
             e.Property(x => x.PlaceNo).HasMaxLength(32).IsRequired();
             e.Property(x => x.Block).HasMaxLength(32);
             e.Property(x => x.IsActive).IsRequired();
@@ -148,7 +144,6 @@ public sealed class AppDbContext : DbContext
         {
             e.ToTable("tariffs");
             e.HasKey(x => x.Id);
-
             e.Property(x => x.Name).HasMaxLength(128).IsRequired();
             e.Property(x => x.BillingModel).HasMaxLength(32).IsRequired();
             e.Property(x => x.IsActive).IsRequired();
@@ -162,7 +157,6 @@ public sealed class AppDbContext : DbContext
         {
             e.ToTable("tariff_rates");
             e.HasKey(x => x.Id);
-
             e.Property(x => x.ValidFrom).IsRequired();
             e.Property(x => x.Cost).HasPrecision(12, 2).IsRequired();
 
@@ -181,7 +175,6 @@ public sealed class AppDbContext : DbContext
         {
             e.ToTable("contracts");
             e.HasKey(x => x.Id);
-
             e.Property(x => x.Status).HasMaxLength(16).IsRequired();
             e.Property(x => x.StartAt).IsRequired();
             e.Property(x => x.PauseBalanceDays).IsRequired();
@@ -256,7 +249,6 @@ public sealed class AppDbContext : DbContext
         {
             e.ToTable("payments");
             e.HasKey(x => x.Id);
-
             e.Property(x => x.Amount).HasPrecision(12, 2).IsRequired();
             e.Property(x => x.PaidAt).IsRequired();
             e.Property(x => x.Method).HasMaxLength(16).IsRequired();
@@ -283,7 +275,6 @@ public sealed class AppDbContext : DbContext
         {
             e.ToTable("watchlist");
             e.HasKey(x => x.Id);
-
             e.Property(x => x.PlateNorm).HasMaxLength(32).IsRequired();
             e.Property(x => x.Type).HasMaxLength(16).IsRequired();
             e.Property(x => x.IsActive).IsRequired();

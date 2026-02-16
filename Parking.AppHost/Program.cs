@@ -3,6 +3,7 @@ using Parking.Application.Contracts.Interfaces;
 using Parking.Application.UseCases.ProcessPassage;
 using Parking.Infrastructure.Persistence;
 using Parking.Infrastructure.Persistence.Repositories;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 using System;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Infrastructure (EF)
 // =======================
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
+       .UseSnakeCaseNamingConvention());
 
 // Repositories
 builder.Services.AddScoped<IPassageRepository, PassageRepository>();
@@ -51,6 +53,11 @@ app.MapPost("/ingest/passage", async (
     await handler.Handle(cmd, ct);
     return Results.Ok();
 });
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
 
 app.MapControllers();
 app.Run();

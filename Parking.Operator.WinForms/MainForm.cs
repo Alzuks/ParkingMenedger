@@ -61,11 +61,20 @@ public partial class MainForm : Form
         timerRefresh.Tick += async (_, __) => await ReloadDashboardAsync();
 
         // клики по карточкам (пока просто MessageBox — потом откроем форму оплаты/карточку)
-        carCardMain.CardDoubleClick += Card_DoubleClick;
-        carCard1.CardDoubleClick += Card_DoubleClick;
-        carCard2.CardDoubleClick += Card_DoubleClick;
-        carCard3.CardDoubleClick += Card_DoubleClick;
-        carCard4.CardDoubleClick += Card_DoubleClick;
+        carCardMain.CardClick += Card_DoubleClick;
+        carCard1.CardClick += Card_DoubleClick;
+        carCard2.CardClick += Card_DoubleClick;
+        carCard3.CardClick += Card_DoubleClick;
+        carCard4.CardClick += Card_DoubleClick;
+        carGrid.Click += (_, __) =>
+        {
+            if (gridHistory.CurrentRow?.DataBoundItem is GridRowDto row)
+            {
+                // тут уже есть и PassageId, и Plate (если распознан)
+                OpenVehicleRegistrationForm(row.PassageId, row.Plate);
+            }
+        };
+
     }
 
     private async void SearchDebounce_Tick(object? sender, EventArgs e)
@@ -87,7 +96,8 @@ public partial class MainForm : Form
         {
             StartPosition = FormStartPosition.CenterParent,
             PassageId = passageId,
-            PlateNorm = plateNorm
+            PlateNorm = plateNorm,
+            Api = _api
         };
 
         frm.ShowDialog(this);
