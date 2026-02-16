@@ -11,7 +11,7 @@ public sealed class VehicleRegContextDto
     public short? Year { get; set; }
 
     public decimal Debt { get; set; }
-    public string? Spot { get; set; }
+    public string? PlaceNo { get; set; }
     public string? StateLabel { get; set; }
 
     public PassageRowDto? SelectedPassage { get; set; }
@@ -31,7 +31,7 @@ public sealed class PassageRowDto
     public long PassageId { get; set; }
     public DateTime OccurredAt { get; set; }
     public string Direction { get; set; } = "IN";
-    public string? Spot { get; set; }
+    public string? PlaceNo { get; set; }
     public double? Confidence { get; set; }
     public string? PhotoUrl { get; set; }
 }
@@ -54,7 +54,7 @@ public sealed class VehicleRegSaveDto
     public long PassageId { get; set; }
     public string PlateNorm { get; set; } = "";
     public string Direction { get; set; } = "IN";
-    public string? Spot { get; set; }
+    public string? PlaceNo { get; set; }
 
     public string? Brand { get; set; }
     public string? Model { get; set; }

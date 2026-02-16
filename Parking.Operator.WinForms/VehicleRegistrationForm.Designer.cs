@@ -55,7 +55,6 @@
             label10 = new Label();
             label11 = new Label();
             label12 = new Label();
-            label13 = new Label();
             cbTariff = new ComboBox();
             OwnerLastName = new Label();
             OwnerFirstName = new Label();
@@ -73,6 +72,7 @@
             tbBrand = new TextBox();
             label18 = new Label();
             tbPhone = new TextBox();
+            label13 = new Label();
             ((System.ComponentModel.ISupportInitialize)pbPhoto).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             tableLayoutPanel1.SuspendLayout();
@@ -389,17 +389,6 @@
             label12.TabIndex = 22;
             label12.Text = "Имя";
             // 
-            // label13
-            // 
-            label13.AutoSize = true;
-            label13.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
-            label13.ForeColor = Color.Brown;
-            label13.Location = new Point(15, 768);
-            label13.Name = "label13";
-            label13.Size = new Size(88, 20);
-            label13.TabIndex = 23;
-            label13.Text = "Фамилия";
-            // 
             // cbTariff
             // 
             cbTariff.Anchor = AnchorStyles.Left;
@@ -578,6 +567,17 @@
             tbPhone.Size = new Size(151, 33);
             tbPhone.TabIndex = 40;
             // 
+            // label13
+            // 
+            label13.AutoSize = true;
+            label13.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
+            label13.ForeColor = Color.Brown;
+            label13.Location = new Point(15, 768);
+            label13.Name = "label13";
+            label13.Size = new Size(88, 20);
+            label13.TabIndex = 23;
+            label13.Text = "Фамилия";
+            // 
             // VehicleRegistrationForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -660,7 +660,6 @@
         private Label label10;
         private Label label11;
         private Label label12;
-        private Label label13;
         private ComboBox cbTariff;
         private Label OwnerLastName;
         private Label OwnerFirstName;
@@ -678,5 +677,6 @@
         private TextBox tbBrand;
         private Label label18;
         private TextBox tbPhone;
+        private Label label13;
     }
 }

@@ -110,7 +110,7 @@ public sealed class VehicleRegistrationController : ControllerBase
         ctx.Payments = new();
 
         ctx.Debt = 0m;
-        ctx.Spot = null;
+        ctx.PlaceNo = null;
 
         return Ok(ctx);
     }
@@ -159,8 +159,8 @@ public sealed class VehicleRegistrationController : ControllerBase
         passage.PlateNorm = dto.PlateNorm;
         passage.Direction = dto.Direction == "OUT" ? (byte)2 : (byte)1;
 
-        // Spot пока некуда писать (в PassageRow поля нет) — пропускаем.
-        // Если добавишь: passage.PlaceNo = dto.Spot;
+        // PlaceNo пока некуда писать (в PassageRow поля нет) — пропускаем.
+        // Если добавишь: passage.PlaceNo = dto.PlaceNo;
 
         await _db.SaveChangesAsync(ct);
 
@@ -183,7 +183,7 @@ public sealed class VehicleRegistrationController : ControllerBase
             PassageId = p.Id,
             OccurredAt = p.OccurredAt.LocalDateTime,
             Direction = p.Direction == 2 ? "OUT" : "IN",
-            Spot = null,
+            PlaceNo = null,
             Confidence = p.Confidence.HasValue ? p.Confidence.Value : null, // под формат 0.000
             PhotoUrl = fileName == null ? null : $"/api/photos/file?name={Uri.EscapeDataString(fileName)}"
         };
