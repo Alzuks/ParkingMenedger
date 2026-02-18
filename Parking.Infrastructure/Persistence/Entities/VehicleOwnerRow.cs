@@ -6,7 +6,7 @@ public sealed class VehicleOwnerRow
     public long OwnerId { get; set; }
     public bool IsPayer { get; set; } = false;
 
-    // nav
+    
     public VehicleRow Vehicle { get; set; } = null!;
     public OwnerRow Owner { get; set; } = null!;
 }

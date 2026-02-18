@@ -9,7 +9,7 @@ public sealed class ContractPlaceRow
     public long? LinkedContractId { get; set; }
     public DateTimeOffset? LinkedSince { get; set; }
 
-    // nav
+    
     public ContractRow Contract { get; set; } = null!;
     public PlaceRow Place { get; set; } = null!;
 

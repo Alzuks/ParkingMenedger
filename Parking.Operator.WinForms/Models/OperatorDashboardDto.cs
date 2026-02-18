@@ -4,8 +4,8 @@ public sealed record OperatorDashboardDto(
     CapacityDto Capacity,
     ShiftDto Shift,
     OperatorDto Operator,
-    List<CarCardDto> LastPassages,   // 5 карточек
-    List<GridRowDto> GridRows        // проезды в гриде
+    List<CarCardDto> LastPassages,
+    List<GridRowDto> GridRows
 );
 
 public sealed record CapacityDto(int Total, int Used);
@@ -13,12 +13,23 @@ public sealed record ShiftDto(int ShiftNumber, int DayOfYear);
 public sealed record OperatorDto(string FullName, string? PhotoUrl);
 
 public sealed record GridRowDto(
+    long PassageId,
     DateTime Time,
-    string Direction,      // "IN"/"OUT"
+    string Direction,
     string Plate,
     string? Brand,
     string? OwnerName,
+    DateTime? NextPaymentDate,
     decimal Debt,
     string? TariffName,
-    string? PlaceNo
+    string? PlaceNo,
+    string? PhotoUrl
+);
+public sealed record CarCardDto(
+    long passageId,
+    string Plate,
+    decimal Debt,
+    bool IsVip,
+    bool IsExpiring,
+    string? PhotoUrl
 );

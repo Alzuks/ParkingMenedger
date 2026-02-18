@@ -11,11 +11,11 @@ public readonly record struct LicensePlate(string Value)
     {
         var plate = (raw ?? string.Empty).Trim().ToUpperInvariant();
 
-        // 1) общий шаг: чистим (для всех стран)
+        // очистка номера
         plate = Regex.Replace(plate, @"[^A-Z0-9]", "");
 
-        // 2) локальный фикс: убираем ведущую "полосу" (I/1/L/|)
-        //    ТОЛЬКО если после удаления получится ваш локальный шаблон
+        // убираем "полосу" (I/F/1/L/|)
+        //   под локальный шаблон
         if (plate.Length == 7 && !LocalPattern.IsMatch(plate))
         {
             var withoutSep = Regex.Replace(plate, @"^(I|1|L|F|\|)", "");
@@ -23,7 +23,6 @@ public readonly record struct LicensePlate(string Value)
                 plate = withoutSep;
         }
 
-        // 3) возвращаем ВСЕГДА (не фильтруем)
         return new LicensePlate(plate);
     }
 

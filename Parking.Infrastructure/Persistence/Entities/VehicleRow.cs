@@ -12,7 +12,7 @@ public sealed class VehicleRow
     public string? Notes { get; set; }
     public bool IsActive { get; set; } = true;
 
-    // nav
+    
     public List<VehicleOwnerRow> VehicleOwners { get; set; } = new();
     public List<ContractVehicleRow> ContractVehicles { get; set; } = new();
 }

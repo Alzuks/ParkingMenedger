@@ -8,6 +8,6 @@ public sealed class PlaceRow
     public string? Notes { get; set; }
     public bool IsActive { get; set; } = true;
 
-    // nav
+    
     public List<ContractPlaceRow> ContractPlaces { get; set; } = new();
 }

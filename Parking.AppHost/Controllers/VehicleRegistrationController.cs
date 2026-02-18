@@ -21,19 +21,14 @@ public sealed class VehicleRegistrationController : ControllerBase
 
         if (passageId.HasValue)
         {
-            selected = await _db.Passages.AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == passageId.Value, ct);
-
-            if (selected == null)
-                return NotFound($"Passage {passageId.Value} not found");
-
-            if (string.IsNullOrWhiteSpace(plateNorm))
-                plateNorm = selected.PlateNorm;
+            selected = await _db.Passages.AsNoTracking().FirstOrDefaultAsync(x => x.Id == passageId.Value, ct);
+            if (selected == null) return NotFound($"Passage {passageId.Value} not found");
+            if (string.IsNullOrWhiteSpace(plateNorm)) plateNorm = selected.PlateNorm;
         }
 
         var ctx = new VehicleRegContextDto();
 
-        // справочники (чтобы форма сразу жила)
+        // справочники
         ctx.Tariffs = await _db.Tariffs.AsNoTracking()
             .Where(t => t.IsActive)
             .OrderBy(t => t.Name)
@@ -43,15 +38,22 @@ public sealed class VehicleRegistrationController : ControllerBase
         ctx.Owners = await _db.Owners.AsNoTracking()
             .Where(o => o.IsActive)
             .OrderBy(o => o.Surname)
-            .Select(o => new OwnerItemDto { OwnerId = o.Id, Surname = o.Surname })
+            .Select(o => new OwnerItemDto
+            {
+                OwnerId = o.Id,
+                Surname = o.Surname,
+                FirstName = o.FirstName,
+                LastName = o.LastName,
+                Phone = o.Phone
+            })
             .ToListAsync(ct);
 
         ctx.Statuses = new()
-        {
-            new StatusItemDto { Code = "Normal", Name = "Обычный" },
-            new StatusItemDto { Code = "Vip", Name = "VIP" },
-            new StatusItemDto { Code = "Black", Name = "Чёрный список" },
-        };
+    {
+        new StatusItemDto { Code = "Normal", Name = "Обычный" },
+        new StatusItemDto { Code = "Vip", Name = "VIP" },
+        new StatusItemDto { Code = "Black", Name = "Чёрный список" },
+    };
 
         ctx.KnownPlates = await _db.Vehicles.AsNoTracking()
             .Where(v => v.IsActive && v.PlateNorm != "")
@@ -63,11 +65,10 @@ public sealed class VehicleRegistrationController : ControllerBase
         if (selected != null)
             ctx.SelectedPassage = MapPassage(selected);
 
-        // no_plate: plateNorm пустой => только selected + справочники
+        // no_plate
         if (string.IsNullOrWhiteSpace(plateNorm))
         {
             ctx.VehicleExists = false;
-            ctx.PlateNorm = null;
             ctx.StateLabel = "NO_PLATE";
             return Ok(ctx);
         }
@@ -87,14 +88,65 @@ public sealed class VehicleRegistrationController : ControllerBase
         else
         {
             ctx.VehicleExists = true;
+            ctx.VehicleId = vehicle.Id;
             ctx.Brand = vehicle.Brand;
             ctx.Model = vehicle.Model;
             ctx.Color = vehicle.Color;
             ctx.Year = vehicle.Year;
             ctx.StateLabel = "Есть в базе";
+
+            // выбранный владелец (VehicleOwner)
+            ctx.SelectedOwnerId = await _db.VehicleOwners.AsNoTracking()
+                .Where(vo => vo.VehicleId == vehicle.Id)
+                .OrderByDescending(vo => vo.IsPayer)
+                .Select(vo => (long?)vo.OwnerId)
+                .FirstOrDefaultAsync(ct);
+
+            // активный контракт по авто (последний активный)
+            var activeContract = await _db.ContractVehicles.AsNoTracking()
+                .Where(cv => cv.VehicleId == vehicle.Id)
+                .Select(cv => cv.Contract)
+                .Where(c => c.Status == "Active")
+                .OrderByDescending(c => c.StartAt)
+                .FirstOrDefaultAsync(ct);
+
+            if (activeContract != null)
+            {
+                ctx.ActiveContractId = activeContract.Id;
+                ctx.SelectedTariffId = activeContract.TariffId;
+
+                // место по контракту
+                var cp = await _db.ContractPlaces.AsNoTracking()
+                    .Include(x => x.Place)
+                    .Where(x => x.ContractId == activeContract.Id)
+                    .OrderBy(x => x.PlaceId)
+                    .FirstOrDefaultAsync(ct);
+
+                ctx.PlaceNo = cp?.Place?.PlaceNo;
+
+                ctx.PlaceReadOnly = cp == null || cp.PlaceId == null;
+            }
+
+            // платежи по активному контракту
+            if (ctx.ActiveContractId.HasValue)
+            {
+                ctx.Payments = await _db.Payments.AsNoTracking()
+                    .Where(p => p.ContractId == ctx.ActiveContractId.Value)
+                    .OrderByDescending(p => p.PaidAt)
+                    .Take(30)
+                    .Select(p => new PaymentRowDto
+                    {
+                        PaymentId = p.Id,
+                        PaidAt = p.PaidAt.LocalDateTime,
+                        Employee = p.Employee != null ? (p.Employee.Surname + " " + p.Employee.FirstName) : null,
+                        Tariff = p.Contract.Tariff.Name,
+                        Amount = p.Amount
+                    })
+                    .ToListAsync(ct);
+            }
         }
 
-        // последние 15 проездов
+        // проезды
         var passages = await _db.Passages.AsNoTracking()
             .Where(p => p.PlateNorm == plateNorm)
             .OrderByDescending(p => p.OccurredAt)
@@ -102,18 +154,14 @@ public sealed class VehicleRegistrationController : ControllerBase
             .ToListAsync(ct);
 
         ctx.Passages = passages.Select(MapPassage).ToList();
-
-        // если selected не задан — сделаем последний
         ctx.SelectedPassage ??= ctx.Passages.FirstOrDefault();
 
-        // payments пока пусто (позже увяжем: vehicle -> contract -> payments)
-        ctx.Payments = new();
-
+        // долг 
         ctx.Debt = 0m;
-        ctx.PlaceNo = null;
 
         return Ok(ctx);
     }
+
 
     // POST /api/vehicle-registration/save
     [HttpPost("save")]
@@ -130,16 +178,16 @@ public sealed class VehicleRegistrationController : ControllerBase
         if (passage == null)
             return NotFound($"Passage {dto.PassageId} not found");
 
-        var oldPlate = passage.PlateNorm;
-        var oldDir = passage.Direction;
-
         // 1) vehicle find/create
-        var vehicle = await _db.Vehicles.FirstOrDefaultAsync(v => v.PlateNorm == dto.PlateNorm && v.IsActive, ct);
+        var vehicle = await _db.Vehicles
+            .FirstOrDefaultAsync(v => v.PlateNorm == dto.PlateNorm && v.IsActive, ct);
+
         if (vehicle == null)
         {
             vehicle = new VehicleRow
             {
                 PlateNorm = dto.PlateNorm,
+                PlateRaw = passage.PlateRaw,
                 Brand = dto.Brand,
                 Model = dto.Model,
                 Color = dto.Color,
@@ -155,20 +203,44 @@ public sealed class VehicleRegistrationController : ControllerBase
             vehicle.Year = dto.Year;
         }
 
-        // 2) passage update
+        //  passage update
         passage.PlateNorm = dto.PlateNorm;
         passage.Direction = dto.Direction == "OUT" ? (byte)2 : (byte)1;
 
-        // PlaceNo пока некуда писать (в PassageRow поля нет) — пропускаем.
-        // Если добавишь: passage.PlaceNo = dto.PlaceNo;
-
         await _db.SaveChangesAsync(ct);
 
-        // 3) TODO: пересчёт сессий
-        // Условия для ребилда:
-        // if (oldPlate != dto.PlateNorm || oldDir != passage.Direction) { ... }
-        // Пока оставляем, чтобы UI поехал. Потом сделаем правильно.
+        //VehicleOwner bind/update
+        if (dto.OwnerId.HasValue)
+        {
+            var ownerId = dto.OwnerId.Value;
 
+            // связка vehicle-owner
+            var vo = await _db.VehicleOwners
+                .FirstOrDefaultAsync(x => x.VehicleId == vehicle.Id, ct);
+
+            if (vo == null)
+            {
+                _db.VehicleOwners.Add(new VehicleOwnerRow
+                {
+                    VehicleId = vehicle.Id, 
+                    OwnerId = ownerId,
+                    IsPayer = true
+                });
+            }
+            else
+            {
+                vo.OwnerId = ownerId;
+                vo.IsPayer = true;
+            }
+
+            // телефон владельца
+            var phone = (dto.Phone ?? "").Trim();
+            var owner = await _db.Owners.FirstOrDefaultAsync(o => o.Id == ownerId, ct);
+            if (owner != null)
+                owner.Phone = string.IsNullOrWhiteSpace(phone) ? null : phone;
+        }
+
+        await _db.SaveChangesAsync(ct);
         return Ok();
     }
 
@@ -184,7 +256,7 @@ public sealed class VehicleRegistrationController : ControllerBase
             OccurredAt = p.OccurredAt.LocalDateTime,
             Direction = p.Direction == 2 ? "OUT" : "IN",
             PlaceNo = null,
-            Confidence = p.Confidence.HasValue ? p.Confidence.Value : null, // под формат 0.000
+            Confidence = p.Confidence.HasValue ? p.Confidence.Value : null,
             PhotoUrl = fileName == null ? null : $"/api/photos/file?name={Uri.EscapeDataString(fileName)}"
         };
     }

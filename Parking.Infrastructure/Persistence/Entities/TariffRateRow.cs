@@ -8,6 +8,6 @@ public sealed class TariffRateRow
     public DateOnly? ValidTo { get; set; }
     public decimal Cost { get; set; }
 
-    // nav
+    
     public TariffRow Tariff { get; set; } = null!;
 }

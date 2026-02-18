@@ -8,9 +8,7 @@ using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// =======================
 // Infrastructure (EF)
-// =======================
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
        .UseSnakeCaseNamingConvention());
@@ -20,17 +18,13 @@ builder.Services.AddScoped<IPassageRepository, PassageRepository>();
 builder.Services.AddScoped<IParkingSessionRepository, ParkingSessionRepository>();
 builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
 
-// =======================
 // Application
-// =======================
 builder.Services.AddScoped<ProcessPassageHandler>();
 builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// =======================
 // Ingest endpoint
-// =======================
 app.MapPost("/ingest/passage", async (
     IngestPassageDto dto,
     HttpContext http,
@@ -62,9 +56,7 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 app.Run();
 
-// =======================
 // DTO
-// =======================
 public sealed record IngestPassageDto(
     DateTimeOffset OccurredAt,
     string PlateRaw,

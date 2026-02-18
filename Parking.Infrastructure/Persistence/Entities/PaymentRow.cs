@@ -6,7 +6,7 @@ public sealed class PaymentRow
     public long ContractId { get; set; }
     public decimal Amount { get; set; }
     public DateTimeOffset PaidAt { get; set; }
-    public string Method { get; set; } = null!; // cash/card/qr
+    public string Method { get; set; } = null!; 
     public long? EmployeeId { get; set; }
     public string? ReceiptNo { get; set; }
     public DateOnly? CoveredFrom { get; set; }

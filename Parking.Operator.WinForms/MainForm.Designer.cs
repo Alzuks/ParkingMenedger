@@ -80,10 +80,10 @@
             MainTableLayer.Location = new Point(0, 0);
             MainTableLayer.Name = "MainTableLayer";
             MainTableLayer.RowCount = 3;
-            MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Absolute, 103F));
-            MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Percent, 60.4368935F));
-            MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Percent, 39.5631065F));
-            MainTableLayer.Size = new Size(1584, 754);
+            MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Absolute, 121F));
+            MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Percent, 63.8198776F));
+            MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Percent, 36.1801224F));
+            MainTableLayer.Size = new Size(1584, 765);
             MainTableLayer.TabIndex = 0;
             // 
             // HeaderTableLayout
@@ -110,7 +110,7 @@
             HeaderTableLayout.Name = "HeaderTableLayout";
             HeaderTableLayout.RowCount = 1;
             HeaderTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            HeaderTableLayout.Size = new Size(1578, 97);
+            HeaderTableLayout.Size = new Size(1578, 115);
             HeaderTableLayout.TabIndex = 0;
             // 
             // lblShift
@@ -118,11 +118,11 @@
             lblShift.Anchor = AnchorStyles.None;
             lblShift.AutoSize = true;
             lblShift.Font = new Font("Tahoma", 36F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lblShift.Location = new Point(840, 19);
+            lblShift.Location = new Point(864, 28);
             lblShift.Name = "lblShift";
-            lblShift.Size = new Size(87, 58);
+            lblShift.Size = new Size(39, 58);
             lblShift.TabIndex = 0;
-            lblShift.Text = "45";
+            lblShift.Text = " ";
             lblShift.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // pnlCapacity
@@ -133,14 +133,14 @@
             pnlCapacity.Dock = DockStyle.Fill;
             pnlCapacity.Location = new Point(558, 3);
             pnlCapacity.Name = "pnlCapacity";
-            pnlCapacity.Size = new Size(254, 91);
+            pnlCapacity.Size = new Size(254, 109);
             pnlCapacity.TabIndex = 7;
             // 
             // lblCapacity
             // 
             lblCapacity.BackColor = SystemColors.ControlLight;
             lblCapacity.Font = new Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lblCapacity.Location = new Point(60, 21);
+            lblCapacity.Location = new Point(58, 30);
             lblCapacity.Name = "lblCapacity";
             lblCapacity.Size = new Size(133, 38);
             lblCapacity.TabIndex = 2;
@@ -151,7 +151,7 @@
             // progressCapacity
             // 
             progressCapacity.Anchor = AnchorStyles.None;
-            progressCapacity.Location = new Point(26, 11);
+            progressCapacity.Location = new Point(26, 20);
             progressCapacity.Name = "progressCapacity";
             progressCapacity.Size = new Size(196, 59);
             progressCapacity.TabIndex = 1;
@@ -169,29 +169,28 @@
             DateShiftTableLayout.RowCount = 2;
             DateShiftTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
             DateShiftTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
-            DateShiftTableLayout.Size = new Size(200, 91);
+            DateShiftTableLayout.Size = new Size(200, 109);
             DateShiftTableLayout.TabIndex = 2;
             // 
             // lblData
             // 
             lblData.Anchor = AnchorStyles.None;
             lblData.Font = new Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lblData.Location = new Point(17, 1);
+            lblData.Location = new Point(17, 4);
             lblData.Name = "lblData";
             lblData.Size = new Size(166, 34);
             lblData.TabIndex = 1;
-            lblData.Text = "14.02.2026   14:20";
             lblData.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblTime
             // 
             lblTime.Anchor = AnchorStyles.None;
             lblTime.Font = new Font("Segoe UI", 26.2956524F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lblTime.Location = new Point(11, 39);
+            lblTime.Location = new Point(11, 51);
             lblTime.Name = "lblTime";
             lblTime.Size = new Size(177, 49);
             lblTime.TabIndex = 2;
-            lblTime.Text = "label1";
+            lblTime.Text = " ";
             lblTime.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblOperatorName
@@ -199,17 +198,17 @@
             lblOperatorName.Anchor = AnchorStyles.None;
             lblOperatorName.AutoSize = true;
             lblOperatorName.Font = new Font("Segoe UI", 18.1565228F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lblOperatorName.Location = new Point(1197, 0);
+            lblOperatorName.Location = new Point(1257, 40);
             lblOperatorName.Name = "lblOperatorName";
-            lblOperatorName.Size = new Size(141, 97);
+            lblOperatorName.Size = new Size(22, 35);
             lblOperatorName.TabIndex = 4;
-            lblOperatorName.Text = "Мечиняну\r\nДмитрий\r\nИванович";
+            lblOperatorName.Text = " ";
             // 
             // btnRefresh
             // 
             btnRefresh.Anchor = AnchorStyles.Left;
             btnRefresh.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnRefresh.Location = new Point(428, 23);
+            btnRefresh.Location = new Point(428, 32);
             btnRefresh.Name = "btnRefresh";
             btnRefresh.Size = new Size(81, 50);
             btnRefresh.TabIndex = 6;
@@ -221,7 +220,7 @@
             // 
             txtSearch.Anchor = AnchorStyles.None;
             txtSearch.Font = new Font("Segoe UI", 24F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            txtSearch.Location = new Point(246, 23);
+            txtSearch.Location = new Point(246, 32);
             txtSearch.Name = "txtSearch";
             txtSearch.Size = new Size(173, 50);
             txtSearch.TabIndex = 5;
@@ -234,7 +233,7 @@
             pbLogo.BackgroundImageLayout = ImageLayout.Zoom;
             pbLogo.ErrorImage = null;
             pbLogo.Image = Properties.Resources.Logo2;
-            pbLogo.Location = new Point(7, 3);
+            pbLogo.Location = new Point(7, 12);
             pbLogo.Name = "pbLogo";
             pbLogo.Size = new Size(226, 91);
             pbLogo.SizeMode = PictureBoxSizeMode.Zoom;
@@ -244,7 +243,7 @@
             // pbOperatorPhoto
             // 
             pbOperatorPhoto.Anchor = AnchorStyles.None;
-            pbOperatorPhoto.Location = new Point(1420, 3);
+            pbOperatorPhoto.Location = new Point(1420, 12);
             pbOperatorPhoto.Name = "pbOperatorPhoto";
             pbOperatorPhoto.Size = new Size(116, 91);
             pbOperatorPhoto.TabIndex = 3;
@@ -259,11 +258,11 @@
             tlpLive.Controls.Add(carCardMain, 0, 0);
             tlpLive.Controls.Add(tlpRight, 1, 0);
             tlpLive.Dock = DockStyle.Fill;
-            tlpLive.Location = new Point(3, 106);
+            tlpLive.Location = new Point(3, 124);
             tlpLive.Name = "tlpLive";
             tlpLive.RowCount = 1;
             tlpLive.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tlpLive.Size = new Size(1578, 387);
+            tlpLive.Size = new Size(1578, 405);
             tlpLive.TabIndex = 1;
             // 
             // carCardMain
@@ -272,7 +271,7 @@
             carCardMain.Location = new Point(3, 4);
             carCardMain.Margin = new Padding(3, 4, 3, 4);
             carCardMain.Name = "carCardMain";
-            carCardMain.Size = new Size(713, 379);
+            carCardMain.Size = new Size(713, 397);
             carCardMain.TabIndex = 0;
             // 
             // tlpRight
@@ -290,7 +289,7 @@
             tlpRight.RowCount = 2;
             tlpRight.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             tlpRight.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tlpRight.Size = new Size(713, 381);
+            tlpRight.Size = new Size(713, 399);
             tlpRight.TabIndex = 1;
             // 
             // carCard1
@@ -299,7 +298,7 @@
             carCard1.Location = new Point(3, 4);
             carCard1.Margin = new Padding(3, 4, 3, 4);
             carCard1.Name = "carCard1";
-            carCard1.Size = new Size(350, 182);
+            carCard1.Size = new Size(350, 191);
             carCard1.TabIndex = 0;
             // 
             // carCard2
@@ -308,25 +307,25 @@
             carCard2.Location = new Point(359, 4);
             carCard2.Margin = new Padding(3, 4, 3, 4);
             carCard2.Name = "carCard2";
-            carCard2.Size = new Size(351, 182);
+            carCard2.Size = new Size(351, 191);
             carCard2.TabIndex = 1;
             // 
             // carCard3
             // 
             carCard3.Dock = DockStyle.Fill;
-            carCard3.Location = new Point(3, 194);
+            carCard3.Location = new Point(3, 203);
             carCard3.Margin = new Padding(3, 4, 3, 4);
             carCard3.Name = "carCard3";
-            carCard3.Size = new Size(350, 183);
+            carCard3.Size = new Size(350, 192);
             carCard3.TabIndex = 2;
             // 
             // carCard4
             // 
             carCard4.Dock = DockStyle.Fill;
-            carCard4.Location = new Point(359, 194);
+            carCard4.Location = new Point(359, 203);
             carCard4.Margin = new Padding(3, 4, 3, 4);
             carCard4.Name = "carCard4";
-            carCard4.Size = new Size(351, 183);
+            carCard4.Size = new Size(351, 192);
             carCard4.TabIndex = 3;
             // 
             // tableLayoutPanel1
@@ -337,11 +336,11 @@
             tableLayoutPanel1.Controls.Add(gridHistory, 0, 0);
             tableLayoutPanel1.Controls.Add(carGrid, 1, 0);
             tableLayoutPanel1.Dock = DockStyle.Fill;
-            tableLayoutPanel1.Location = new Point(3, 499);
+            tableLayoutPanel1.Location = new Point(3, 535);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 1;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel1.Size = new Size(1578, 252);
+            tableLayoutPanel1.Size = new Size(1578, 227);
             tableLayoutPanel1.TabIndex = 2;
             // 
             // gridHistory
@@ -355,7 +354,7 @@
             gridHistory.ReadOnly = true;
             gridHistory.RowHeadersWidth = 49;
             gridHistory.ShowCellToolTips = false;
-            gridHistory.Size = new Size(1085, 246);
+            gridHistory.Size = new Size(1085, 221);
             gridHistory.TabIndex = 2;
             // 
             // carGrid
@@ -364,7 +363,7 @@
             carGrid.Dock = DockStyle.Fill;
             carGrid.Location = new Point(1094, 3);
             carGrid.Name = "carGrid";
-            carGrid.Size = new Size(481, 246);
+            carGrid.Size = new Size(481, 221);
             carGrid.TabIndex = 3;
             carGrid.TabStop = false;
             // 
@@ -375,7 +374,7 @@
             // stServer
             // 
             stServer.ImageScalingSize = new Size(19, 19);
-            stServer.Location = new Point(0, 732);
+            stServer.Location = new Point(0, 743);
             stServer.Name = "stServer";
             stServer.Size = new Size(1584, 22);
             stServer.TabIndex = 1;
@@ -384,7 +383,7 @@
             // stLastUpdate
             // 
             stLastUpdate.ImageScalingSize = new Size(19, 19);
-            stLastUpdate.Location = new Point(0, 710);
+            stLastUpdate.Location = new Point(0, 721);
             stLastUpdate.Name = "stLastUpdate";
             stLastUpdate.Size = new Size(1584, 22);
             stLastUpdate.TabIndex = 2;
@@ -394,7 +393,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1584, 754);
+            ClientSize = new Size(1584, 765);
             Controls.Add(stLastUpdate);
             Controls.Add(stServer);
             Controls.Add(MainTableLayer);

@@ -53,14 +53,10 @@
             cbStatus = new ComboBox();
             lbDebt = new Label();
             label10 = new Label();
-            label11 = new Label();
-            label12 = new Label();
             cbTariff = new ComboBox();
-            OwnerLastName = new Label();
-            OwnerFirstName = new Label();
             btnAddStatus = new Button();
             btnAddTariff = new Button();
-            cbOwnerLastName = new ComboBox();
+            cbOwnerSurname = new ComboBox();
             btnAddOwner = new Button();
             label14 = new Label();
             label15 = new Label();
@@ -276,7 +272,7 @@
             // 
             btnPlay.Anchor = AnchorStyles.None;
             btnPlay.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnPlay.Location = new Point(887, 784);
+            btnPlay.Location = new Point(912, 790);
             btnPlay.Name = "btnPlay";
             btnPlay.Size = new Size(114, 42);
             btnPlay.TabIndex = 13;
@@ -308,9 +304,9 @@
             // dgvPayments
             // 
             dgvPayments.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvPayments.Location = new Point(1031, 680);
+            dgvPayments.Location = new Point(1055, 680);
             dgvPayments.Name = "dgvPayments";
-            dgvPayments.Size = new Size(391, 169);
+            dgvPayments.Size = new Size(367, 169);
             dgvPayments.TabIndex = 15;
             // 
             // label8
@@ -318,7 +314,7 @@
             label8.AutoSize = true;
             label8.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label8.ForeColor = Color.Brown;
-            label8.Location = new Point(743, 690);
+            label8.Location = new Point(768, 691);
             label8.Name = "label8";
             label8.Size = new Size(68, 20);
             label8.TabIndex = 16;
@@ -340,7 +336,7 @@
             cbStatus.Anchor = AnchorStyles.Left;
             cbStatus.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             cbStatus.FormattingEnabled = true;
-            cbStatus.Location = new Point(818, 682);
+            cbStatus.Location = new Point(843, 683);
             cbStatus.Name = "cbStatus";
             cbStatus.Size = new Size(143, 33);
             cbStatus.TabIndex = 18;
@@ -361,71 +357,27 @@
             label10.AutoSize = true;
             label10.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label10.ForeColor = Color.Brown;
-            label10.Location = new Point(746, 724);
+            label10.Location = new Point(771, 747);
             label10.Name = "label10";
             label10.Size = new Size(65, 20);
             label10.TabIndex = 20;
             label10.Text = "Тариф";
-            // 
-            // label11
-            // 
-            label11.AutoSize = true;
-            label11.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            label11.ForeColor = Color.Brown;
-            label11.Location = new Point(569, 767);
-            label11.Name = "label11";
-            label11.Size = new Size(91, 20);
-            label11.TabIndex = 21;
-            label11.Text = "Отчество";
-            // 
-            // label12
-            // 
-            label12.AutoSize = true;
-            label12.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
-            label12.ForeColor = Color.Brown;
-            label12.Location = new Point(320, 768);
-            label12.Name = "label12";
-            label12.Size = new Size(43, 20);
-            label12.TabIndex = 22;
-            label12.Text = "Имя";
             // 
             // cbTariff
             // 
             cbTariff.Anchor = AnchorStyles.Left;
             cbTariff.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             cbTariff.FormattingEnabled = true;
-            cbTariff.Location = new Point(818, 721);
+            cbTariff.Location = new Point(843, 740);
             cbTariff.Name = "cbTariff";
             cbTariff.Size = new Size(143, 33);
             cbTariff.TabIndex = 24;
-            // 
-            // OwnerLastName
-            // 
-            OwnerLastName.Anchor = AnchorStyles.Left;
-            OwnerLastName.AutoSize = true;
-            OwnerLastName.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            OwnerLastName.Location = new Point(658, 767);
-            OwnerLastName.Name = "OwnerLastName";
-            OwnerLastName.Size = new Size(14, 20);
-            OwnerLastName.TabIndex = 25;
-            OwnerLastName.Text = " ";
-            // 
-            // OwnerFirstName
-            // 
-            OwnerFirstName.Anchor = AnchorStyles.Left;
-            OwnerFirstName.AutoSize = true;
-            OwnerFirstName.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            OwnerFirstName.Location = new Point(366, 768);
-            OwnerFirstName.Name = "OwnerFirstName";
-            OwnerFirstName.Size = new Size(14, 20);
-            OwnerFirstName.TabIndex = 26;
-            OwnerFirstName.Text = " ";
             // 
             // btnAddStatus
             // 
             btnAddStatus.Anchor = AnchorStyles.None;
             btnAddStatus.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnAddStatus.Location = new Point(968, 682);
+            btnAddStatus.Location = new Point(993, 683);
             btnAddStatus.Name = "btnAddStatus";
             btnAddStatus.Size = new Size(33, 33);
             btnAddStatus.TabIndex = 18;
@@ -437,7 +389,7 @@
             // 
             btnAddTariff.Anchor = AnchorStyles.None;
             btnAddTariff.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnAddTariff.Location = new Point(968, 720);
+            btnAddTariff.Location = new Point(993, 739);
             btnAddTariff.Name = "btnAddTariff";
             btnAddTariff.Size = new Size(33, 33);
             btnAddTariff.TabIndex = 28;
@@ -445,21 +397,21 @@
             btnAddTariff.UseVisualStyleBackColor = true;
             btnAddTariff.Visible = false;
             // 
-            // cbOwnerLastName
+            // cbOwnerSurname
             // 
-            cbOwnerLastName.Anchor = AnchorStyles.Left;
-            cbOwnerLastName.Font = new Font("Microsoft Sans Serif", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            cbOwnerLastName.FormattingEnabled = true;
-            cbOwnerLastName.Location = new Point(109, 760);
-            cbOwnerLastName.Name = "cbOwnerLastName";
-            cbOwnerLastName.Size = new Size(166, 32);
-            cbOwnerLastName.TabIndex = 29;
+            cbOwnerSurname.Anchor = AnchorStyles.Left;
+            cbOwnerSurname.Font = new Font("Microsoft Sans Serif", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            cbOwnerSurname.FormattingEnabled = true;
+            cbOwnerSurname.Location = new Point(108, 789);
+            cbOwnerSurname.Name = "cbOwnerSurname";
+            cbOwnerSurname.Size = new Size(450, 32);
+            cbOwnerSurname.TabIndex = 29;
             // 
             // btnAddOwner
             // 
             btnAddOwner.Anchor = AnchorStyles.None;
             btnAddOwner.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnAddOwner.Location = new Point(281, 760);
+            btnAddOwner.Location = new Point(564, 788);
             btnAddOwner.Name = "btnAddOwner";
             btnAddOwner.Size = new Size(33, 33);
             btnAddOwner.TabIndex = 30;
@@ -472,7 +424,7 @@
             label14.AutoSize = true;
             label14.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label14.ForeColor = Color.Brown;
-            label14.Location = new Point(627, 728);
+            label14.Location = new Point(626, 746);
             label14.Name = "label14";
             label14.Size = new Size(41, 20);
             label14.TabIndex = 31;
@@ -483,7 +435,7 @@
             label15.AutoSize = true;
             label15.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label15.ForeColor = Color.Brown;
-            label15.Location = new Point(450, 727);
+            label15.Location = new Point(449, 745);
             label15.Name = "label15";
             label15.Size = new Size(52, 20);
             label15.TabIndex = 32;
@@ -494,7 +446,7 @@
             label16.AutoSize = true;
             label16.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label16.ForeColor = Color.Brown;
-            label16.Location = new Point(234, 728);
+            label16.Location = new Point(233, 746);
             label16.Name = "label16";
             label16.Size = new Size(76, 20);
             label16.TabIndex = 33;
@@ -505,7 +457,7 @@
             label17.AutoSize = true;
             label17.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label17.ForeColor = Color.Brown;
-            label17.Location = new Point(14, 728);
+            label17.Location = new Point(13, 746);
             label17.Name = "label17";
             label17.Size = new Size(62, 20);
             label17.TabIndex = 34;
@@ -514,7 +466,7 @@
             // tbYear
             // 
             tbYear.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbYear.Location = new Point(671, 720);
+            tbYear.Location = new Point(670, 738);
             tbYear.Name = "tbYear";
             tbYear.ReadOnly = true;
             tbYear.Size = new Size(59, 33);
@@ -523,7 +475,7 @@
             // tbColor
             // 
             tbColor.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbColor.Location = new Point(504, 720);
+            tbColor.Location = new Point(503, 738);
             tbColor.Name = "tbColor";
             tbColor.ReadOnly = true;
             tbColor.Size = new Size(113, 33);
@@ -532,7 +484,7 @@
             // tbModel
             // 
             tbModel.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbModel.Location = new Point(310, 720);
+            tbModel.Location = new Point(309, 738);
             tbModel.Name = "tbModel";
             tbModel.ReadOnly = true;
             tbModel.Size = new Size(134, 33);
@@ -541,7 +493,7 @@
             // tbBrand
             // 
             tbBrand.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbBrand.Location = new Point(77, 721);
+            tbBrand.Location = new Point(76, 739);
             tbBrand.Name = "tbBrand";
             tbBrand.ReadOnly = true;
             tbBrand.Size = new Size(151, 33);
@@ -552,7 +504,7 @@
             label18.AutoSize = true;
             label18.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label18.ForeColor = Color.Brown;
-            label18.Location = new Point(15, 805);
+            label18.Location = new Point(615, 797);
             label18.Name = "label18";
             label18.Size = new Size(86, 20);
             label18.TabIndex = 39;
@@ -561,7 +513,7 @@
             // tbPhone
             // 
             tbPhone.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbPhone.Location = new Point(102, 800);
+            tbPhone.Location = new Point(707, 790);
             tbPhone.Name = "tbPhone";
             tbPhone.ReadOnly = true;
             tbPhone.Size = new Size(151, 33);
@@ -572,7 +524,7 @@
             label13.AutoSize = true;
             label13.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label13.ForeColor = Color.Brown;
-            label13.Location = new Point(15, 768);
+            label13.Location = new Point(14, 797);
             label13.Name = "label13";
             label13.Size = new Size(88, 20);
             label13.TabIndex = 23;
@@ -594,15 +546,11 @@
             Controls.Add(label15);
             Controls.Add(label14);
             Controls.Add(btnAddOwner);
-            Controls.Add(cbOwnerLastName);
+            Controls.Add(cbOwnerSurname);
             Controls.Add(btnAddTariff);
             Controls.Add(btnAddStatus);
-            Controls.Add(OwnerFirstName);
-            Controls.Add(OwnerLastName);
             Controls.Add(cbTariff);
             Controls.Add(label13);
-            Controls.Add(label12);
-            Controls.Add(label11);
             Controls.Add(label10);
             Controls.Add(lbDebt);
             Controls.Add(cbStatus);
@@ -658,14 +606,10 @@
         private ComboBox cbStatus;
         private Label lbDebt;
         private Label label10;
-        private Label label11;
-        private Label label12;
         private ComboBox cbTariff;
-        private Label OwnerLastName;
-        private Label OwnerFirstName;
         private Button btnAddStatus;
         private Button btnAddTariff;
-        private ComboBox cbOwnerLastName;
+        private ComboBox cbOwnerSurname;
         private Button btnAddOwner;
         private Label label14;
         private Label label15;

@@ -20,6 +20,5 @@ public sealed class ContractRow
     public List<ContractVehicleRow> ContractVehicles { get; set; } = new();
     public List<PaymentRow> Payments { get; set; } = new();
 
-    // linked backrefs (не обязателен, но удобно)
     public List<ContractPlaceRow> LinkedPlaces { get; set; } = new();
 }

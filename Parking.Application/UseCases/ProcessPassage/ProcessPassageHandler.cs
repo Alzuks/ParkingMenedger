@@ -27,7 +27,7 @@ public sealed class ProcessPassageHandler
             return new ProcessPassageResult(PassageAction.IgnoredNoPlate, Reason: "Empty plate after normalization");
 
         var occurredAt = cmd.OccurredAt.ToUniversalTime();
-        // Всегда пишем факт проезда
+        // пишем факт проезда
         await _passages.AddAsync(occurredAt, cmd.PlateRaw, plate, cmd.Direction, cmd.JpegPath, cmd.Confidence, ct);
 
         if ((cmd.Confidence ?? 0) == 0)

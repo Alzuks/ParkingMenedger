@@ -24,6 +24,7 @@ public sealed class ApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(baseUrl))
             throw new ArgumentException("baseUrl is empty", nameof(baseUrl));
 
+        // чтобы и "http://1.2.3.4:5000" и "http://1.2.3.4:5000/" работало одинаково
         if (!baseUrl.EndsWith("/"))
             baseUrl += "/";
 
@@ -87,14 +88,18 @@ public sealed class ApiClient : IDisposable
         return await GetJsonOrThrowAsync<OperatorDashboardDto>(url, ct);
     }
 
+    // -----------------------------
     // VEHICLE REGISTRATION (new form)
+    // -----------------------------
 
+    /// <summary>
     /// Контекст для формы VehicleRegistration:
     /// - выбранный проезд (по passageId)
     /// - vehicle (если есть по plateNorm)
     /// - последние проезды, оплаты
     /// - справочники (тарифы/статусы/владельцы/список номеров)
     /// Endpoint: GET /api/vehicle-registration/context?passageId=...&plateNorm=...
+    /// </summary>
     public async Task<VehicleRegContextDto> GetVehicleRegContextAsync(long? passageId, string? plateNorm, CancellationToken ct = default)
     {
         var url =
@@ -104,19 +109,24 @@ public sealed class ApiClient : IDisposable
         return await GetJsonOrThrowAsync<VehicleRegContextDto>(url, ct);
     }
 
+    /// <summary>
     /// Сохранение правок (номер/направление/поля авто и т.д.)
     /// Endpoint: POST /api/vehicle-registration/save
     /// Сервер внутри:
     /// - создаёт vehicle если нет
     /// - привязывает passage к plateNorm/vehicle
     /// - пересчитывает сессии если поменялся номер или направление
+    /// </summary>
     public async Task SaveVehicleRegistrationAsync(VehicleRegSaveDto dto, CancellationToken ct = default)
     {
         await PostJsonOrThrowAsync("api/vehicle-registration/save", dto, ct);
     }
 
 
-    /// Скачивание изображения 
+    /// <summary>
+    /// Скачивание изображения по относительному url (например "api/photos/123")
+    /// или абсолютному url.
+    /// </summary>
     public async Task<Image?> GetImageAsync(string photoUrl, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(photoUrl))
@@ -137,18 +147,19 @@ public sealed class ApiClient : IDisposable
 
         await using var stream = await resp.Content.ReadAsStreamAsync(ct);
 
+        // Важно: Image.FromStream требует, чтобы поток жил, поэтому копируем в MemoryStream.
         using var ms = new MemoryStream();
         await stream.CopyToAsync(ms, ct);
         ms.Position = 0;
 
         using var tmp = Image.FromStream(ms);
-        return new Bitmap(tmp);
+        return new Bitmap(tmp); // <- клон, поток больше не нужен
     }
     public async Task<OwnerCreatedDto?> CreateOwnerAsync(
 OwnerCreateDto dto,
 CancellationToken ct)
     {
-        using var resp = await _http.PostAsJsonAsync("api/owners", dto, _json, ct);
+        using var resp = await _http.PostAsJsonAsync("api/owners", dto, ct);
 
         if (!resp.IsSuccessStatusCode)
             throw await ApiException.FromHttpAsync(resp, ct);
@@ -156,7 +167,9 @@ CancellationToken ct)
         return await resp.Content.ReadFromJsonAsync<OwnerCreatedDto>(cancellationToken: ct);
     }
 
+    // -----------------------------
     // INTERNAL HELPERS
+    // -----------------------------
 
     private async Task<T> GetJsonOrThrowAsync<T>(string relativeUrl, CancellationToken ct)
     {
@@ -187,7 +200,9 @@ CancellationToken ct)
 
 }
 
-/// исключение для отображения в UI/логах.
+/// <summary>
+/// Нормальное исключение для отображения в UI/логах.
+/// </summary>
 public sealed class ApiException : Exception
 {
     public int StatusCode { get; }

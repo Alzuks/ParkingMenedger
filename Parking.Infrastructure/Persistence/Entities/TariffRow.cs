@@ -8,7 +8,7 @@ public sealed class TariffRow
     public bool IsActive { get; set; } = true;
     public string? Notes { get; set; }
 
-    // nav
+   
     public List<TariffRateRow> Rates { get; set; } = new();
     public List<ContractRow> Contracts { get; set; } = new();
 }

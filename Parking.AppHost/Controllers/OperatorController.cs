@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Parking.AppHost.Dtos;
+using Parking.AppHost.DTOs;
 using Parking.Infrastructure.Persistence;
 
 namespace Parking.AppHost.Controllers;
@@ -20,24 +20,21 @@ public sealed class OperatorController : ControllerBase
 
     // GET /api/operator/dashboard?search=...
     [HttpGet("dashboard")]
-    public async Task<ActionResult<OperatorDashboardDto>> GetDashboard([FromQuery] string? search, CancellationToken ct)
+    public async Task<ActionResult<OperatorDashboardDtos>> GetDashboard([FromQuery] string? search, CancellationToken ct)
     {
         search = string.IsNullOrWhiteSpace(search) ? null : search.Trim();
 
-        // ----- Capacity -----
-        // Если таблица Places пока пустая — берём из конфига или дефолт 170
+        //  Capacity 
         var totalPlaces = await _db.Places.CountAsync(ct);
         if (totalPlaces <= 0)
             totalPlaces = _cfg.GetValue<int?>("Parking:TotalPlaces") ?? 170;
 
         var usedPlaces = await _db.ParkingSessions.CountAsync(s => s.ClosedAt == null, ct);
 
-        // ----- Shift / Operator (пока заглушки) -----
         var now = DateTime.Now;
         var shift = new ShiftDto(DayOfYear: now.DayOfYear);
         var oper = new OperatorDto(FullName: "Оператор", PhotoUrl: null);
 
-        // ----- 5 последних проездов (карточки) -----
         var last = await _db.Passages
             .OrderByDescending(p => p.OccurredAt)
             .Take(5)
@@ -56,46 +53,63 @@ public sealed class OperatorController : ControllerBase
             Plate: p.PlateNorm,
             Direction: DirToText(p.Direction),
             Time: p.OccurredAt.LocalDateTime,
-            Debt: 0m,            // пока нет долговой модели в БД
-            IsVip: false,        // позже (watchlist/contracts)
-            IsExpiring: false,   // позже (paid_until/contracts)
+            Debt: 0m,
+            IsVip: false,
+            IsExpiring: false,
             PhotoUrl: string.IsNullOrWhiteSpace(p.JpegPath)
             ? null
                : "/api/photos/file?name=" +
-                Uri.EscapeDataString(Path.GetFileName(p.JpegPath))
+                Uri.EscapeDataString(Path.GetFileName(p.JpegPath!))
         )).ToList();
 
-        // ----- GRID: последние проезды + поиск по номеру/фамилии -----
-        // владельцев пока нет — OwnerName будет null, но поиск по номеру уже работает
         var q = _db.Passages.AsQueryable();
 
         if (search is not null)
         {
-            // plate search (Postgres ILIKE)
+            // plate search
             q = q.Where(p =>
                 EF.Functions.ILike(p.PlateNorm, $"%{search}%") ||
                 EF.Functions.ILike(p.PlateRaw, $"%{search}%"));
         }
 
-        var grid = await q
-            .OrderByDescending(p => p.OccurredAt)
-            .Take(200)
-            .Select(p => new GridRowDto(
-                p.Id,
-                p.OccurredAt.LocalDateTime,
-                DirToText(p.Direction),
-                p.PlateNorm,
-                null,   // Brand
-                null,   // OwnerName
-                0m,     // Debt
-                null,   // TariffName
-                null,   // PlaceNo
-               p.JpegPath == null? null 
-                    : "/api/photos/file?name=" +
-                    Uri.EscapeDataString(Path.GetFileName(p.JpegPath))
-                )).ToListAsync(ct);
 
-        return Ok(new OperatorDashboardDto(
+    var grid = await
+(
+    from p in q.OrderByDescending(p => p.OccurredAt).Take(200)
+
+    join v in _db.Vehicles.AsNoTracking()
+        on p.PlateNorm equals v.PlateNorm into vv
+    from v in vv.Where(x => x.IsActive).DefaultIfEmpty()
+
+        // владелец (берём первого, можно потом выбирать payer)
+    join vo in _db.VehicleOwners.AsNoTracking()
+        on v.Id equals vo.VehicleId into vvo
+    from vo in vvo.DefaultIfEmpty()
+
+    join o in _db.Owners.AsNoTracking()
+        on vo.OwnerId equals o.Id into oo
+    from o in oo.Where(x => x.IsActive).DefaultIfEmpty()
+
+    select new GridRowDto(
+        p.Id,
+        p.OccurredAt.LocalDateTime,
+        DirToText(p.Direction),
+        p.PlateNorm,
+        v != null ? v.Brand : null,
+        o != null
+            ? (o.Surname + " " + o.FirstName + " " + (o.LastName ?? "")).Trim()
+            : null,
+        0m,
+        null,
+        null,
+        p.JpegPath == null
+            ? null
+            : "/api/photos/file?name=" +
+              Uri.EscapeDataString(Path.GetFileName(p.JpegPath))
+    )).ToListAsync(ct);
+
+
+        return Ok(new OperatorDashboardDtos(
             Capacity: new CapacityDto(totalPlaces, usedPlaces),
             Shift: shift,
             Operator: oper,
@@ -118,16 +132,4 @@ public sealed class OperatorController : ControllerBase
             .Replace('+', '-')
             .Replace('/', '_');
     }
-
-
-    // Пока фото нет как endpoint — вернём null, чтобы WinForms просто не грузил картинку.
-    // Когда сделаем /api/photos/by-path?... или /api/photos/{id} — сюда вернём url.
-    //private static string? MakePhotoUrl(string? jpegPath)
-    //{
-    // Временно: ничего не отдаём
-    //  return null;
-
-    // Вариант на будущее:
-    // return string.IsNullOrWhiteSpace(jpegPath) ? null : $"api/photos/file?path={Uri.EscapeDataString(jpegPath)}";
 }
-//}

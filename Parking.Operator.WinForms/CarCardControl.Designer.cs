@@ -70,7 +70,7 @@
             lblPlate.Name = "lblPlate";
             lblPlate.Size = new Size(632, 48);
             lblPlate.TabIndex = 1;
-            lblPlate.Text = "label1";
+            lblPlate.Text = " ";
             lblPlate.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblDebt

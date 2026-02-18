@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Configuration;
-using Parking.Operator.WinForms.Models; // если DTO у тебя в Models
+using Parking.Operator.WinForms.Models;
 using System;
 using System.ComponentModel;
 using System.Security.Policy;
@@ -14,7 +14,7 @@ public partial class MainForm : Form
     private System.Windows.Forms.Timer? _searchDebounce;
     private CancellationTokenSource? _imgCts;
 
-    // кеш загруженных картинок по url, чтобы не качать одно и то же каждые 5 секунд
+    // кеш загруженных картинок по url
     private readonly Dictionary<string, (Image Img, DateTime LoadedAt)> _imageCache = new();
 
     private readonly TimeSpan _imageCacheTtl = TimeSpan.FromMinutes(2);
@@ -36,10 +36,9 @@ public partial class MainForm : Form
         SetupGrid();
         WireUi();
 
-        // старт
         Shown += async (_, __) =>
         {
-            timerRefresh.Interval = 7000; // 7 сек, подстрой
+            timerRefresh.Interval = 7000;
             timerRefresh.Start();
             await ReloadDashboardAsync();
         };
@@ -47,7 +46,6 @@ public partial class MainForm : Form
 
     private void WireUi()
     {
-        //btnRefresh.Click += async (_, __) => await ReloadDashboardAsync();
 
         txtSearch.TextChanged += (_, __) =>
         {
@@ -191,13 +189,6 @@ public partial class MainForm : Form
             Width = 100
         });
 
-        /* gridHistory.Columns.Add(new DataGridViewTextBoxColumn
-         {
-             Name = "colDebt",
-             HeaderText = "Долг",
-             DataPropertyName = "Debt",
-             Width = 80
-         });*/
 
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
         {
@@ -252,7 +243,6 @@ public partial class MainForm : Form
     private async Task ReloadDashboardAsync()
     {
 
-        // отменяем предыдущую перезагрузку (если ты быстро жмёшь или печатаешь)
         _reloadCts?.Cancel();
         _reloadCts?.Dispose();
         _reloadCts = new CancellationTokenSource();
@@ -276,9 +266,6 @@ public partial class MainForm : Form
 
             if (gridHistory.FirstDisplayedScrollingRowIndex >= 0)
                 firstVisible = gridHistory.FirstDisplayedScrollingRowIndex;
-
-
-            BindGrid(dto.GridRows);
             _imgCts?.Cancel();
             _imgCts?.Dispose();
             _imgCts = new CancellationTokenSource();
@@ -287,7 +274,7 @@ public partial class MainForm : Form
             stLastUpdate.Text = $"Обновлено: {DateTime.Now:dd.MM.yyyy HH:mm:ss}";
 
             SetServerOk("OK");
-            //BindGrid(dto.GridRows);
+            BindGrid(dto.GridRows);
 
             RestoreGridPosition(selectedId, firstVisible);
 
@@ -295,7 +282,6 @@ public partial class MainForm : Form
         }
         catch (OperationCanceledException)
         {
-            // нормальная ситуация — игнор
         }
         catch (ApiException ex)
         {
@@ -319,11 +305,9 @@ public partial class MainForm : Form
         if (gridHistory.Rows.Count == 0)
             return;
 
-        // 1) вернём прокрутку (если возможно)
         if (firstVisible >= 0 && firstVisible < gridHistory.Rows.Count)
             gridHistory.FirstDisplayedScrollingRowIndex = firstVisible;
 
-        // 2) вернём выделение по PassageId
         if (selectedId is null)
             return;
 
@@ -354,8 +338,6 @@ public partial class MainForm : Form
         lblData.Text = DateTime.Now.ToString("dd.MM.yyyy");
         lblTime.Text = DateTime.Now.ToString("HH:mm");
 
-        // фото оператора —  грузить как фото карточек 
-        // отдельный LoadOperatorPhoto(dto.Operator.PhotoUrl)
         if (string.IsNullOrWhiteSpace(dto.Operator.PhotoUrl))
         {
             var old = pbOperatorPhoto.Image;
@@ -387,18 +369,17 @@ public partial class MainForm : Form
     private void BindGrid(List<GridRowDto>? rows)
     {
         gridHistory.DataSource = new BindingList<GridRowDto>(rows ?? new());
+
     }
 
     private async Task LoadCardImagesAsync(List<CarCardDto>? cars, CancellationToken ct)
     {
-        // if (cars is null || cars.Count == 0) return;
         var snapshot = cars.Take(5).ToArray();
         var controls = new[] { carCardMain, carCard1, carCard2, carCard3, carCard4 };
         var n = Math.Min(snapshot.Length, controls.Length);
 
         CleanupImageCache();
 
-        // 2 одновременных скачивания, чтобы успевало до следующего обновления
         using var sem = new SemaphoreSlim(2);
 
         var tasks = Enumerable.Range(0, n).Select(async i =>
@@ -412,7 +393,6 @@ public partial class MainForm : Form
             {
                 ct.ThrowIfCancellationRequested();
 
-                // ВАЖНО: используем кеш
                 var img = await GetCachedOrLoadImageAsync(dto.PhotoUrl, ct);
 
                 if (IsDisposed) return;
@@ -430,7 +410,7 @@ public partial class MainForm : Form
         });
 
         try { await Task.WhenAll(tasks); }
-        catch (OperationCanceledException) { /* норм */ }
+        catch (OperationCanceledException) {}
     }
 
     private async Task<Image> GetCachedOrLoadImageAsync(string photoUrl, CancellationToken ct)
@@ -441,7 +421,6 @@ public partial class MainForm : Form
             {
                 if (DateTime.UtcNow - cached.LoadedAt < _imageCacheTtl)
                 {
-                    // Важно: отдаём копию, чтобы Dispose в контроле не убил кеш
                     return (Image)cached.Img.Clone();
                 }
             }
@@ -451,7 +430,7 @@ public partial class MainForm : Form
 
         lock (_imageCache)
         {
-            // заменяем кеш (старую картинку освобождаем)
+            // заменяем кеш
             if (_imageCache.TryGetValue(photoUrl, out var old))
                 old.Img.Dispose();
 
@@ -482,7 +461,6 @@ public partial class MainForm : Form
     private void SetServerOk(string text)
     {
         stServer.Text = $"Сервер: {text}";
-        // тут можно менять цвет statusStrip, если хочешь
     }
 
     private void SetServerBad(string text)

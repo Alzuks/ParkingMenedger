@@ -20,13 +20,14 @@ namespace Parking.Operator.WinForms
         private PointF _photoPan = new(0, 0);
         private bool _photoDragging;
         private Point _photoDragStart;
-        private bool _binding;
+
 
         public VehicleRegistrationForm()
         {
             InitializeComponent();
 
             SetupPhotoViewer();
+
 
             // по умолчанию всё залочено
             ApplyViewMode();
@@ -35,25 +36,34 @@ namespace Parking.Operator.WinForms
             SetupPassagesGrid();
             SetupPaymentsGrid();
 
-            KeyPreview = true;
-            KeyDown += (_, e) =>
+            this.KeyPreview = true;
+
+            this.KeyDown += (s, e) =>
             {
                 if (e.KeyCode == Keys.Escape)
                 {
-                    if (_editMode) ApplyViewMode();
-                    else Close();
+                    if (_editMode)
+                    {
+                        ApplyViewMode();   // отменяем редактирование
+                    }
+                    else
+                    {
+                        this.Close();      // закрываем форму
+                    }
                 }
             };
 
+
             // события
             Shown += async (_, __) => await LoadAllAsync();
+                       
             btnAddOwner.Click += async (_, __) => await AddOwnerAsync();
             dataGridView1.SelectionChanged += (_, __) => OnSelectedPassageChanged();
 
             btnEdit.Click += (_, __) => EnterEditMode();
             btnSave.Click += async (_, __) => await SaveAsync();
 
-            btnPlay.Click += (_, __) => OpenPaymentDialog(); // позже
+            btnPlay.Click += (_, __) => OpenPaymentDialog(); // позже сделаем нормально
 
             // направление руками
             cbDirection.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -66,22 +76,7 @@ namespace Parking.Operator.WinForms
             cbStatus.DropDownStyle = ComboBoxStyle.DropDownList;
             cbOwnerSurname.DropDownStyle = ComboBoxStyle.DropDownList;
             cbPlate.DropDownStyle = ComboBoxStyle.DropDown; // важно! при no_plate можно ввести
-
-            // Тариф по ТЗ: активен всегда (даже в view mode)
-            cbTariff.Enabled = true;
-
-            // смена владельца -> обновляем лейблы
-
-            cbOwnerSurname.SelectedValueChanged += (_, __) =>
-            {
-                if (_binding) return;
-                if (_ctx == null) return;
-                _ctx.SelectedOwnerId = cbOwnerSurname.SelectedValue is long id ? id : (long?)null;
-                RefreshOwnerLabels();
-            };
         }
-
-        // ---------------- GRIDS ----------------
 
         private void SetupPassagesGrid()
         {
@@ -175,12 +170,10 @@ namespace Parking.Operator.WinForms
             });
         }
 
-        // ---------------- PHOTO VIEWER ----------------
-
         private void SetupPhotoViewer()
         {
             pbPhoto.SizeMode = PictureBoxSizeMode.Normal; // рисуем сами
-            pbPhoto.BackColor = Color.Black;
+            pbPhoto.BackColor = Color.Black;              // по желанию
             pbPhoto.TabStop = true;
 
             pbPhoto.Paint += PbPhoto_Paint;
@@ -190,12 +183,17 @@ namespace Parking.Operator.WinForms
             pbPhoto.MouseUp += PbPhoto_MouseUp;
             pbPhoto.DoubleClick += (_, __) =>
             {
-                if (_photoZoom < 0.99f) ZoomAtCenter(1.0f);
-                else FitPhotoToScreen();
+                // например: переключаем 100% ↔ fit
+                if (_photoZoom < 0.99f)
+                    ZoomAtCenter(1.0f);
+                else
+                    FitPhotoToScreen();
             };
 
+            // чтобы колесо работало без кликов мимо
             pbPhoto.MouseEnter += (_, __) => pbPhoto.Focus();
         }
+
 
         private void PbPhoto_Paint(object? sender, PaintEventArgs e)
         {
@@ -207,8 +205,10 @@ namespace Parking.Operator.WinForms
             e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
             e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
 
+            // Рисуем с масштабом и сдвигом
             e.Graphics.TranslateTransform(_photoPan.X, _photoPan.Y);
             e.Graphics.ScaleTransform(_photoZoom, _photoZoom);
+
             e.Graphics.DrawImage(img, 0, 0, img.Width, img.Height);
         }
 
@@ -218,22 +218,32 @@ namespace Parking.Operator.WinForms
             if (img == null) return;
 
             float oldZoom = _photoZoom;
+
             float factor = e.Delta > 0 ? _photoZoomStep : (1f / _photoZoomStep);
             float newZoom = Math.Clamp(oldZoom * factor, _photoZoomMin, _photoZoomMax);
 
             if (Math.Abs(newZoom - oldZoom) < 0.0001f)
                 return;
 
+            // Точка якоря: курсор, но только если он над картинкой.
+            // Иначе — центр PictureBox.
             PointF anchor = new PointF(e.X, e.Y);
-            var imgRect = GetImageScreenRect(img, oldZoom, _photoPan);
-            if (!imgRect.Contains(anchor))
-                anchor = new PointF(pbPhoto.ClientSize.Width / 2f, pbPhoto.ClientSize.Height / 2f);
 
+            // Проверяем, что anchor попадает внутрь текущего прямоугольника изображения на экране
+            var imgRect = GetImageScreenRect(img, oldZoom, _photoPan);
+
+            if (!imgRect.Contains(anchor))
+            {
+                anchor = new PointF(pbPhoto.ClientSize.Width / 2f, pbPhoto.ClientSize.Height / 2f);
+            }
+
+            // world = (screen - pan) / zoom
             var worldX = (anchor.X - _photoPan.X) / oldZoom;
             var worldY = (anchor.Y - _photoPan.Y) / oldZoom;
 
             _photoZoom = newZoom;
 
+            // pan = screen - world * zoom
             _photoPan = new PointF(
                 anchor.X - worldX * _photoZoom,
                 anchor.Y - worldY * _photoZoom
@@ -244,7 +254,12 @@ namespace Parking.Operator.WinForms
 
         private RectangleF GetImageScreenRect(Image img, float zoom, PointF pan)
         {
-            return new RectangleF(pan.X, pan.Y, img.Width * zoom, img.Height * zoom);
+            return new RectangleF(
+                pan.X,
+                pan.Y,
+                img.Width * zoom,
+                img.Height * zoom
+            );
         }
 
         private void ZoomAtCenter(float targetZoom)
@@ -257,11 +272,13 @@ namespace Parking.Operator.WinForms
 
             var center = new PointF(pbPhoto.ClientSize.Width / 2f, pbPhoto.ClientSize.Height / 2f);
 
+            // world point under center before zoom
             var worldX = (center.X - _photoPan.X) / oldZoom;
             var worldY = (center.Y - _photoPan.Y) / oldZoom;
 
             _photoZoom = newZoom;
 
+            // keep same world point under center after zoom
             _photoPan = new PointF(
                 center.X - worldX * _photoZoom,
                 center.Y - worldY * _photoZoom
@@ -269,6 +286,7 @@ namespace Parking.Operator.WinForms
 
             pbPhoto.Invalidate();
         }
+
 
         private void PbPhoto_MouseDown(object? sender, MouseEventArgs e)
         {
@@ -287,6 +305,7 @@ namespace Parking.Operator.WinForms
             _photoPan.X += e.X - _photoDragStart.X;
             _photoPan.Y += e.Y - _photoDragStart.Y;
             _photoDragStart = e.Location;
+
             pbPhoto.Invalidate();
         }
 
@@ -294,6 +313,13 @@ namespace Parking.Operator.WinForms
         {
             _photoDragging = false;
             pbPhoto.Cursor = Cursors.Default;
+        }
+
+        private void ResetPhotoView()
+        {
+            _photoZoom = 1f;
+            _photoPan = new PointF(0, 0);
+            pbPhoto.Invalidate();
         }
 
         private void FitPhotoToScreen()
@@ -317,7 +343,7 @@ namespace Parking.Operator.WinForms
             pbPhoto.Invalidate();
         }
 
-        // ---------------- LOAD/BIND ----------------
+
 
         private async Task LoadAllAsync()
         {
@@ -327,38 +353,19 @@ namespace Parking.Operator.WinForms
                 return;
             }
 
-            try
-            {
-                _ctx = await Api.GetVehicleRegContextAsync(PassageId, PlateNorm);
-            }
-            catch (ApiException ex)
-            {
-                MessageBox.Show(ex.Body ?? ex.Message, "Ошибка API");
-                return;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Ошибка");
-                return;
-            }
+            _ctx = await Api.GetVehicleRegContextAsync(PassageId, PlateNorm);
 
-            if (_ctx == null) return;
+            //заполняем справочники (комбобоксы)
+            BindLookups(_ctx);
 
+            //заполняем паспорт авто (если vehicle найден)
+            BindVehicleFields(_ctx);
 
-            _binding = true;
-            try
-            {
-                BindLookups(_ctx);
-                BindVehicleFields(_ctx);
-            }
-            finally
-            {
-                _binding = false;
-            }
-
+            //заполняем гриды
             dataGridView1.DataSource = new BindingList<PassageRowDto>(_ctx.Passages);
             dgvPayments.DataSource = new BindingList<PaymentRowDto>(_ctx.Payments);
 
+            // выделяем первый проезд (последний)
             if (dataGridView1.Rows.Count > 0)
                 dataGridView1.Rows[0].Selected = true;
 
@@ -371,35 +378,37 @@ namespace Parking.Operator.WinForms
 
         private void BindLookups(VehicleRegContextDto ctx)
         {
+            // Plate: список известных + ввод рукой
             cbPlate.Items.Clear();
             foreach (var p in ctx.KnownPlates)
                 cbPlate.Items.Add(p);
 
-            cbTariff.DisplayMember = nameof(TariffItemDto.Name);
-            cbTariff.ValueMember = nameof(TariffItemDto.Id);
+            // тарифы
+            cbTariff.DisplayMember = "Name";
+            cbTariff.ValueMember = "Id";
             cbTariff.DataSource = ctx.Tariffs;
 
-            cbStatus.DisplayMember = nameof(StatusItemDto.Name);
-            cbStatus.ValueMember = nameof(StatusItemDto.Code);
+            // статусы
+            cbStatus.DisplayMember = "Name";
+            cbStatus.ValueMember = "Code";
             cbStatus.DataSource = ctx.Statuses;
 
-            cbOwnerSurname.DataSource = null;
-            cbOwnerSurname.DisplayMember = nameof(OwnerItemDto.DisplayName);
+            // владельцы (пока фамилия)
+            cbOwnerSurname.DisplayMember = nameof(OwnerItemDto.DisplayName); ;
             cbOwnerSurname.ValueMember = nameof(OwnerItemDto.OwnerId);
             cbOwnerSurname.DataSource = ctx.Owners;
-
-
-            // Тариф всегда активен по ТЗ
-            cbTariff.Enabled = true;
         }
 
         private void BindVehicleFields(VehicleRegContextDto ctx)
         {
+            // Данные выбранного проезда (верх справа)
             lbDate.Text = ctx.SelectedPassage?.OccurredAt.ToString("dd.MM.yyyy HH:mm:ss") ?? "-";
             lbConfidence.Text = ctx.SelectedPassage?.Confidence?.ToString("0") ?? "-";
 
+            // номер
             cbPlate.Text = ctx.PlateNorm ?? "";
 
+            // авто поля (если есть)
             tbBrand.Text = ctx.Brand ?? "";
             tbModel.Text = ctx.Model ?? "";
             tbColor.Text = ctx.Color ?? "";
@@ -408,72 +417,30 @@ namespace Parking.Operator.WinForms
             lbDebt.Text = ctx.Debt.ToString("0.00");
             lblState.Text = ctx.StateLabel ?? "";
 
-            // место: редактировать ТОЛЬКО если нашли контрактную связку
             tbSpot.Text = ctx.PlaceNo ?? "";
-            tbSpot.ReadOnly = !ctx.CanEditPlace;
-
-            // выбранный владелец из контекста
-            // выбранный владелец
-            cbOwnerSurname.SelectedIndex = -1;
-
-            if (ctx.SelectedOwnerId.HasValue)
-            {
-                // пробуем обычный путь
-                cbOwnerSurname.SelectedValue = ctx.SelectedOwnerId.Value;
-
-                // если WinForms не выбрал — ищем руками
-                if (cbOwnerSurname.SelectedIndex < 0)
-                {
-                    for (int i = 0; i < cbOwnerSurname.Items.Count; i++)
-                    {
-                        if (cbOwnerSurname.Items[i] is OwnerItemDto o && o.OwnerId == ctx.SelectedOwnerId.Value)
-                        {
-                            cbOwnerSurname.SelectedIndex = i;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // обязательно после выбора
-            RefreshOwnerLabels();
-
-            // тариф: после загрузки может быть пусто, если не задан
-            cbTariff.SelectedIndex = -1;
-            if (ctx.SelectedTariffId.HasValue)
-                cbTariff.SelectedValue = ctx.SelectedTariffId.Value;
+            //OwnerFirstName = ctx.Owners?.FirstName && "";
 
             // направление выбранного проезда
             if (ctx.SelectedPassage != null)
                 cbDirection.SelectedItem = ctx.SelectedPassage.Direction == "IN" ? "Заехал" : "Выехал";
 
+            // фото выбранного
             _ = LoadPhotoAsync(ctx.SelectedPassage?.PhotoUrl);
         }
 
-        private void RefreshOwnerLabels()
-        {
-            if (_ctx == null) return;
-            var ownerId = _ctx.SelectedOwnerId ?? (cbOwnerSurname.SelectedValue is long id ? id : (long?)null);
-
-            var owner = ownerId.HasValue
-                ? _ctx.Owners.FirstOrDefault(o => o.OwnerId == ownerId.Value)
-                : null;
-            tbPhone.Text = owner?.Phone ?? "";
-        }
-
-  
         private void OnSelectedPassageChanged()
         {
             if (_ctx == null) return;
             if (dataGridView1.CurrentRow?.DataBoundItem is not PassageRowDto p) return;
 
+            // обновим “выбранный”
             _ctx.SelectedPassage = p;
 
             lbDate.Text = p.OccurredAt.ToString("dd.MM.yyyy HH:mm:ss");
             lbConfidence.Text = p.Confidence?.ToString("0") ?? "-";
             cbDirection.SelectedItem = p.Direction == "IN" ? "Заехал" : "Выехал";
+            tbSpot.Text = p.PlaceNo ?? "";
 
-            // место по выбранному проезду сейчас не трогаем, оно контрактное
             _ = LoadPhotoAsync(p.PhotoUrl);
         }
 
@@ -493,8 +460,8 @@ namespace Parking.Operator.WinForms
                 var old = pbPhoto.Image;
                 pbPhoto.Image = img;
                 old?.Dispose();
-
                 FitPhotoToScreen();
+
             }
             catch
             {
@@ -502,44 +469,31 @@ namespace Parking.Operator.WinForms
             }
         }
 
-        // ---------------- OWNER ----------------
-
 
         private async Task AddOwnerAsync()
         {
-            if (Api == null || _ctx == null) return;
+            if (Api == null) return;
 
-            using var frm = new AddOwnerForm { StartPosition = FormStartPosition.CenterParent };
+            using var frm = new AddOwnerForm
+            {
+                StartPosition = FormStartPosition.CenterParent
+            };
+
             if (frm.ShowDialog(this) != DialogResult.OK)
                 return;
 
             try
             {
                 var created = await Api.CreateOwnerAsync(frm.Result, CancellationToken.None);
-                if (created == null) return;
 
-                // 1) добавляем в локальный список (без LoadAllAsync!)
-                _ctx.Owners.Insert(0, new OwnerItemDto
+                // обновляем весь контекст, чтобы Owners в combobox подтянулись
+                await LoadAllAsync();
+
+                // выбираем нового владельца
+                if (created != null)
                 {
-                    OwnerId = created.OwnerId,
-                    Surname = created.Surname,
-                    FirstName = created.FirstName,
-                    LastName = created.LastName,
-                    Phone = created.Phone
-                });
-
-                // 2) перезабиндим только комбобокс владельцев (не трогая tbBrand/tbModel)
-                var keepSelected = created.OwnerId;
-
-                cbOwnerSurname.DataSource = null;
-                cbOwnerSurname.DisplayMember = nameof(OwnerItemDto.DisplayName);
-                cbOwnerSurname.ValueMember = nameof(OwnerItemDto.OwnerId);
-                cbOwnerSurname.DataSource = _ctx.Owners;
-
-                cbOwnerSurname.SelectedValue = keepSelected;
-                _ctx.SelectedOwnerId = keepSelected;
-
-                RefreshOwnerLabels();
+                    cbOwnerSurname.SelectedValue = created.OwnerId;
+                }
             }
             catch (ApiException ex)
             {
@@ -552,66 +506,57 @@ namespace Parking.Operator.WinForms
         }
 
 
-        // ---------------- MODES ----------------
-
         private void ApplyViewMode()
         {
             _editMode = false;
 
+            // грид активен
             dataGridView1.Enabled = true;
 
-            tbPhone.ReadOnly = true;
+            // textboxes readonly
             tbBrand.ReadOnly = true;
             tbModel.ReadOnly = true;
             tbColor.ReadOnly = true;
             tbYear.ReadOnly = true;
+            tbSpot.ReadOnly = true;
 
-            // tbSpot readonly управляется контекстом (контракт найден или нет)
-            // поэтому тут НЕ трогаем tbSpot.ReadOnly
-
+            // combos lock
             cbPlate.Enabled = false;
             cbDirection.Enabled = false;
+            cbTariff.Enabled = false;
             cbStatus.Enabled = false;
             cbOwnerSurname.Enabled = false;
 
-            // Тариф по ТЗ всегда активен
-            cbTariff.Enabled = true;
-
             btnEdit.Enabled = true;
             btnSave.Enabled = false;
-
-            btnAddOwner.Visible = false;
+            btnAddOwner.Visible = false; // пока не реализуем добавление владельца
             btnAddStatus.Visible = false;
             btnAddTariff.Visible = false;
+
         }
 
         private void EnterEditMode(bool onlyPlate = false)
         {
             _editMode = true;
 
+            // после “Изменить” грид неактивен до Save
             dataGridView1.Enabled = false;
 
-            cbPlate.Enabled = true;
-            cbDirection.Enabled = true;
-
-            // место редактируем только если нашли контрактную связку
-            if (_ctx != null)
-                tbSpot.ReadOnly = !_ctx.CanEditPlace;
+            // разрешаем редактирование
+            cbPlate.Enabled = true;                 // номер редактируем всегда в edit
+            cbDirection.Enabled = true;             // направление меняем тут
+            tbSpot.ReadOnly = false;
 
             if (!onlyPlate)
             {
-                tbPhone.ReadOnly = false;
                 tbBrand.ReadOnly = false;
                 tbModel.ReadOnly = false;
                 tbColor.ReadOnly = false;
                 tbYear.ReadOnly = false;
 
-                // тариф активен всегда
                 cbTariff.Enabled = true;
-
                 cbStatus.Enabled = true;
                 cbOwnerSurname.Enabled = true;
-
                 btnAddOwner.Visible = true;
                 btnAddStatus.Visible = true;
                 btnAddTariff.Visible = true;
@@ -621,14 +566,13 @@ namespace Parking.Operator.WinForms
             btnSave.Enabled = true;
         }
 
-        // ---------------- SAVE ----------------
-
         private async Task SaveAsync()
         {
             if (Api == null || _ctx == null)
                 return;
 
-            var plate = (cbPlate.Text ?? "").Trim();
+            // номер обязателен (особенно для no_plate)
+            var plate = cbPlate.Text?.Trim() ?? "";
             if (string.IsNullOrWhiteSpace(plate))
             {
                 MessageBox.Show("Введите номер.");
@@ -644,59 +588,35 @@ namespace Parking.Operator.WinForms
             var dirText = cbDirection.SelectedItem?.ToString() ?? "Заехал";
             var dir = dirText == "Заехал" ? "IN" : "OUT";
 
-            var ownerId = cbOwnerSurname.SelectedValue is long o ? o : (long?)null;
-
-            // телефон имеет смысл сохранять только если выбран владелец
-            var phone = (tbPhone.Text ?? "").Trim();
-            if (ownerId == null) phone = "";
-
-            // если телефон пустой/пробелы — отправляем null
-            string? phoneOrNull = string.IsNullOrWhiteSpace(phone) ? null : phone;
-
             var dto = new VehicleRegSaveDto
             {
                 PassageId = _ctx.SelectedPassage.PassageId,
                 PlateNorm = plate,
                 Direction = dir,
+                PlaceNo = tbSpot.Text.Trim(),
 
-                Brand = (tbBrand.Text ?? "").Trim(),
-                Model = (tbModel.Text ?? "").Trim(),
-                Color = (tbColor.Text ?? "").Trim(),
-                Year = short.TryParse((tbYear.Text ?? "").Trim(), out var y) ? y : (short?)null,
+                Brand = tbBrand.Text.Trim(),
+                Model = tbModel.Text.Trim(),
+                Color = tbColor.Text.Trim(),
+                Year = int.TryParse(tbYear.Text.Trim(), out var y) ? y : (int?)null,
 
-                OwnerId = ownerId,
-                Phone = phoneOrNull,
-
-                TariffId = cbTariff.SelectedValue is long t ? t : (long?)null,
+                TariffId = cbTariff.SelectedValue as long?,
                 StatusCode = cbStatus.SelectedValue?.ToString(),
-
-                PlaceNo = (tbSpot.Text ?? "").Trim()
+                OwnerId = cbOwnerSurname.SelectedValue as long?
             };
 
-            try
-            {
-                await Api.SaveVehicleRegistrationAsync(dto);
-            }
-            catch (ApiException ex)
-            {
-                MessageBox.Show(ex.Body ?? ex.Message, "Ошибка API");
-                return;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Ошибка");
-                return;
-            }
+            await Api.SaveVehicleRegistrationAsync(dto);
 
+            // перезагрузить всё заново (vehicle может появиться только что)
             PlateNorm = plate;
             await LoadAllAsync();
+
             ApplyViewMode();
         }
 
-
         private void OpenPaymentDialog()
         {
-            MessageBox.Show("Оплату сделаем следующим шагом (нужны: тариф, сотрудник, сроки).");
+            MessageBox.Show("Оплату сделаем следующим шагом (там нужен сотрудник combobox).");
         }
     }
 }

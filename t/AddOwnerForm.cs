@@ -1,6 +1,4 @@
 ﻿using System.Text.RegularExpressions;
-using Parking.Operator.WinForms.Models;
-
 
 namespace Parking.Operator.WinForms;
 
@@ -51,8 +49,16 @@ public partial class AddOwnerForm : Form
             tbSurname.Focus();
             return;
         }
-       
-        if (!string.IsNullOrWhiteSpace(phone) && phone.Length < 5)
+
+        if (firstName.Length < 2)
+        {
+            MessageBox.Show("Введите имя.");
+            tbFirstName.Focus();
+            return;
+        }
+
+        
+        if (!string.IsNullOrWhiteSpace(phone) && phone.Length < 7)
         {
             MessageBox.Show("Телефон слишком короткий.");
             tbPhone.Focus();
@@ -79,4 +85,12 @@ public partial class AddOwnerForm : Form
             cleaned = "+" + cleaned.Replace("+", "");
         return cleaned;
     }
+}
+
+public sealed class OwnerCreateDto
+{
+    public string Surname { get; set; } = "";
+    public string FirstName { get; set; } = "";
+    public string? LastName { get; set; }  
+    public string? Phone { get; set; }
 }

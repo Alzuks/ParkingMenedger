@@ -33,13 +33,13 @@
             label12 = new Label();
             label11 = new Label();
             tableLayoutPanel1 = new TableLayoutPanel();
+            btnCancel = new Button();
             tbPhone = new TextBox();
             label2 = new Label();
             tbLastName = new TextBox();
             tbFirstName = new TextBox();
             tbSurname = new TextBox();
             btnOk = new Button();
-            btnCancel = new Button();
             tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
             // 
@@ -117,13 +117,23 @@
             tableLayoutPanel1.Size = new Size(412, 228);
             tableLayoutPanel1.TabIndex = 27;
             // 
+            // btnCancel
+            // 
+            btnCancel.Anchor = AnchorStyles.None;
+            btnCancel.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            btnCancel.Location = new Point(53, 186);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(92, 35);
+            btnCancel.TabIndex = 45;
+            btnCancel.Text = "Отмена";
+            btnCancel.UseVisualStyleBackColor = true;
+            // 
             // tbPhone
             // 
             tbPhone.Anchor = AnchorStyles.Left;
             tbPhone.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             tbPhone.Location = new Point(201, 141);
             tbPhone.Name = "tbPhone";
-            tbPhone.ReadOnly = true;
             tbPhone.Size = new Size(151, 33);
             tbPhone.TabIndex = 43;
             // 
@@ -145,7 +155,6 @@
             tbLastName.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             tbLastName.Location = new Point(201, 96);
             tbLastName.Name = "tbLastName";
-            tbLastName.ReadOnly = true;
             tbLastName.Size = new Size(171, 33);
             tbLastName.TabIndex = 41;
             // 
@@ -155,7 +164,6 @@
             tbFirstName.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             tbFirstName.Location = new Point(201, 51);
             tbFirstName.Name = "tbFirstName";
-            tbFirstName.ReadOnly = true;
             tbFirstName.Size = new Size(171, 33);
             tbFirstName.TabIndex = 40;
             // 
@@ -165,7 +173,6 @@
             tbSurname.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             tbSurname.Location = new Point(201, 6);
             tbSurname.Name = "tbSurname";
-            tbSurname.ReadOnly = true;
             tbSurname.Size = new Size(171, 33);
             tbSurname.TabIndex = 39;
             // 
@@ -179,17 +186,6 @@
             btnOk.TabIndex = 44;
             btnOk.Text = "Ok";
             btnOk.UseVisualStyleBackColor = true;
-            // 
-            // btnCancel
-            // 
-            btnCancel.Anchor = AnchorStyles.None;
-            btnCancel.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnCancel.Location = new Point(53, 186);
-            btnCancel.Name = "btnCancel";
-            btnCancel.Size = new Size(92, 35);
-            btnCancel.TabIndex = 45;
-            btnCancel.Text = "Отмена";
-            btnCancel.UseVisualStyleBackColor = true;
             // 
             // AddOwnerForm
             // 
