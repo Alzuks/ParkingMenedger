@@ -145,7 +145,7 @@ public partial class MainForm : Form
             Name = "colTime",
             HeaderText = "Время",
             DataPropertyName = "Time",
-            Width = 200
+            Width = 170
         });
 
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
@@ -178,7 +178,7 @@ public partial class MainForm : Form
             Name = "colOwner",
             HeaderText = "ФИО",
             DataPropertyName = "OwnerName",
-            Width = 225
+            Width = 245
         });
 
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
@@ -253,7 +253,7 @@ public partial class MainForm : Form
             SetServerOk("Обновление...");
 
             var dto = await _api.GetOperatorDashboardAsync(txtSearch.Text, ct);
-            stLastUpdate.Text = $"GridRows = {dto.GridRows?.Count ?? -1}";
+            ssLastUpdate.Text = $"GridRows = {dto.GridRows?.Count ?? -1}";
 
             BindHeader(dto);
             BindLastCars(dto.LastPassages);
@@ -271,7 +271,7 @@ public partial class MainForm : Form
             _imgCts = new CancellationTokenSource();
             _ = LoadCardImagesAsync(dto.LastPassages, _imgCts.Token);
 
-            stLastUpdate.Text = $"Обновлено: {DateTime.Now:dd.MM.yyyy HH:mm:ss}";
+            ssLastUpdate.Text = $"Обновлено: {DateTime.Now:dd.MM.yyyy HH:mm:ss}";
 
             SetServerOk("OK");
             BindGrid(dto.GridRows);
@@ -286,7 +286,7 @@ public partial class MainForm : Form
         catch (ApiException ex)
         {
             SetServerBad($"Ошибка API: {ex.StatusCode}");
-            stLastUpdate.Text = ex.Body is null ? ex.Message : ex.Body;
+            ssLastUpdate.Text = ex.Body is null ? ex.Message : ex.Body;
         }
         catch (HttpRequestException)
         {
@@ -295,7 +295,7 @@ public partial class MainForm : Form
         catch (Exception ex)
         {
             SetServerBad("Ошибка");
-            stLastUpdate.Text = ex.GetType().Name;
+            ssLastUpdate.Text = ex.GetType().Name;
         }
     }
 
@@ -460,12 +460,12 @@ public partial class MainForm : Form
 
     private void SetServerOk(string text)
     {
-        stServer.Text = $"Сервер: {text}";
+        ssServer.Text = $"Сервер: {text}";
     }
 
     private void SetServerBad(string text)
     {
-        stServer.Text = $"Сервер: {text}";
+        ssServer.Text = $"Сервер: {text}";
     }
 
     private async void btnRefresh_Click(object sender, EventArgs e)

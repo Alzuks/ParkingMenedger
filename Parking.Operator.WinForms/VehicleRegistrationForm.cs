@@ -53,7 +53,7 @@ namespace Parking.Operator.WinForms
             btnEdit.Click += (_, __) => EnterEditMode();
             btnSave.Click += async (_, __) => await SaveAsync();
 
-            btnPlay.Click += (_, __) => OpenPaymentDialog(); // позже
+            btnPlay.Click += (_, __) => OpenPaymentDialog();
 
             // направление руками
             cbDirection.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -65,7 +65,7 @@ namespace Parking.Operator.WinForms
             cbTariff.DropDownStyle = ComboBoxStyle.DropDownList;
             cbStatus.DropDownStyle = ComboBoxStyle.DropDownList;
             cbOwnerSurname.DropDownStyle = ComboBoxStyle.DropDownList;
-            cbPlate.DropDownStyle = ComboBoxStyle.DropDown; // важно! при no_plate можно ввести
+            cbPlate.DropDownStyle = ComboBoxStyle.DropDown; // при no_plate можно ввести
 
             // Тариф по ТЗ: активен всегда (даже в view mode)
             cbTariff.Enabled = true;
@@ -81,7 +81,7 @@ namespace Parking.Operator.WinForms
             };
         }
 
-        // ---------------- GRIDS ----------------
+        //  GRIDS 
 
         private void SetupPassagesGrid()
         {
@@ -175,7 +175,7 @@ namespace Parking.Operator.WinForms
             });
         }
 
-        // ---------------- PHOTO VIEWER ----------------
+        //  PHOTO VIEWER 
 
         private void SetupPhotoViewer()
         {
@@ -317,7 +317,7 @@ namespace Parking.Operator.WinForms
             pbPhoto.Invalidate();
         }
 
-        // ---------------- LOAD/BIND ----------------
+        //  LOAD/BIND 
 
         private async Task LoadAllAsync()
         {
@@ -408,11 +408,10 @@ namespace Parking.Operator.WinForms
             lbDebt.Text = ctx.Debt.ToString("0.00");
             lblState.Text = ctx.StateLabel ?? "";
 
-            // место: редактировать ТОЛЬКО если нашли контрактную связку
+            //  редактировать ТОЛЬКО если нашли контрактную связку
             tbSpot.Text = ctx.PlaceNo ?? "";
             tbSpot.ReadOnly = !ctx.CanEditPlace;
 
-            // выбранный владелец из контекста
             // выбранный владелец
             cbOwnerSurname.SelectedIndex = -1;
 
@@ -438,7 +437,7 @@ namespace Parking.Operator.WinForms
             // обязательно после выбора
             RefreshOwnerLabels();
 
-            // тариф: после загрузки может быть пусто, если не задан
+            // тариф
             cbTariff.SelectedIndex = -1;
             if (ctx.SelectedTariffId.HasValue)
                 cbTariff.SelectedValue = ctx.SelectedTariffId.Value;
@@ -473,7 +472,7 @@ namespace Parking.Operator.WinForms
             lbConfidence.Text = p.Confidence?.ToString("0") ?? "-";
             cbDirection.SelectedItem = p.Direction == "IN" ? "Заехал" : "Выехал";
 
-            // место по выбранному проезду сейчас не трогаем, оно контрактное
+            // место по выбранному проезду 
             _ = LoadPhotoAsync(p.PhotoUrl);
         }
 
@@ -502,7 +501,7 @@ namespace Parking.Operator.WinForms
             }
         }
 
-        // ---------------- OWNER ----------------
+        //  OWNER 
 
 
         private async Task AddOwnerAsync()
@@ -518,7 +517,6 @@ namespace Parking.Operator.WinForms
                 var created = await Api.CreateOwnerAsync(frm.Result, CancellationToken.None);
                 if (created == null) return;
 
-                // 1) добавляем в локальный список (без LoadAllAsync!)
                 _ctx.Owners.Insert(0, new OwnerItemDto
                 {
                     OwnerId = created.OwnerId,
@@ -528,7 +526,6 @@ namespace Parking.Operator.WinForms
                     Phone = created.Phone
                 });
 
-                // 2) перезабиндим только комбобокс владельцев (не трогая tbBrand/tbModel)
                 var keepSelected = created.OwnerId;
 
                 cbOwnerSurname.DataSource = null;
@@ -552,7 +549,7 @@ namespace Parking.Operator.WinForms
         }
 
 
-        // ---------------- MODES ----------------
+        //  MODES 
 
         private void ApplyViewMode()
         {
@@ -567,7 +564,6 @@ namespace Parking.Operator.WinForms
             tbYear.ReadOnly = true;
 
             // tbSpot readonly управляется контекстом (контракт найден или нет)
-            // поэтому тут НЕ трогаем tbSpot.ReadOnly
 
             cbPlate.Enabled = false;
             cbDirection.Enabled = false;
@@ -594,7 +590,6 @@ namespace Parking.Operator.WinForms
             cbPlate.Enabled = true;
             cbDirection.Enabled = true;
 
-            // место редактируем только если нашли контрактную связку
             if (_ctx != null)
                 tbSpot.ReadOnly = !_ctx.CanEditPlace;
 
@@ -621,7 +616,7 @@ namespace Parking.Operator.WinForms
             btnSave.Enabled = true;
         }
 
-        // ---------------- SAVE ----------------
+        //  SAVE
 
         private async Task SaveAsync()
         {
@@ -646,11 +641,9 @@ namespace Parking.Operator.WinForms
 
             var ownerId = cbOwnerSurname.SelectedValue is long o ? o : (long?)null;
 
-            // телефон имеет смысл сохранять только если выбран владелец
             var phone = (tbPhone.Text ?? "").Trim();
             if (ownerId == null) phone = "";
 
-            // если телефон пустой/пробелы — отправляем null
             string? phoneOrNull = string.IsNullOrWhiteSpace(phone) ? null : phone;
 
             var dto = new VehicleRegSaveDto
@@ -696,7 +689,9 @@ namespace Parking.Operator.WinForms
 
         private void OpenPaymentDialog()
         {
-            MessageBox.Show("Оплату сделаем следующим шагом (нужны: тариф, сотрудник, сроки).");
+            var frm1 = new paymentForm { StartPosition = FormStartPosition.CenterParent };
+            if (frm1.ShowDialog(this) != DialogResult.OK)
+                return;
         }
     }
 }

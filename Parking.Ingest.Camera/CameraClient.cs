@@ -129,7 +129,7 @@ public sealed class CameraClient : IDisposable
         _attach = NETClient.RealLoadPicture(
             _login,
             _opt.Channel,
-            (uint)EM_EVENT_IVS_TYPE.TRAFFICJUNCTION, // только то, что надо
+            (uint)EM_EVENT_IVS_TYPE.TRAFFICJUNCTION, 
             true,
             _cbAnalyzer,
             IntPtr.Zero,
@@ -171,12 +171,11 @@ public sealed class CameraClient : IDisposable
                 plateRaw = "NoPlate";
             }
 
-            var confidence = (int)info.stuObject.nConfidence; // 0..255
+            var confidence = (int)info.stuObject.nConfidence; 
             OnConfidence?.Invoke(confidence);
 
             var dir = MapDirection(info.byDirection);
 
-            // время события: из UTC если валидное, иначе now
             var occurredAt = ToDateTimeOffsetOrNow(info.UTC);
 
             // JPEG
@@ -202,7 +201,6 @@ public sealed class CameraClient : IDisposable
             if (_csvPath != null)
                 AppendCsv(_csvPath, occurredAt, plateRaw, dir, confidence, jpgPath);
 
-            // Важное: в домен я передаю то, что он ожидает (Confidence не тащу)
             OnPassage?.Invoke(new ProcessPassageCommand(
                 OccurredAt: occurredAt,
                 PlateRaw: plateRaw,
@@ -222,7 +220,6 @@ public sealed class CameraClient : IDisposable
     private CameraDirection MapDirection(byte byDirection)
     {
         // byDirection: 1 = forward, 2 = reverse
-        // ForwardMeansIn: значит “1 = In”
         return byDirection switch
         {
             1 => (_opt.ForwardMeansIn ? CameraDirection.Forward : CameraDirection.Reverse),

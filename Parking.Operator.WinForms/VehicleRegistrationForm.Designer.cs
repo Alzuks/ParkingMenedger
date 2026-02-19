@@ -80,7 +80,7 @@
             pbPhoto.BorderStyle = BorderStyle.FixedSingle;
             pbPhoto.Location = new Point(10, 12);
             pbPhoto.Name = "pbPhoto";
-            pbPhoto.Size = new Size(1100, 660);
+            pbPhoto.Size = new Size(1002, 560);
             pbPhoto.SizeMode = PictureBoxSizeMode.Zoom;
             pbPhoto.TabIndex = 0;
             pbPhoto.TabStop = false;
@@ -90,20 +90,20 @@
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.AllowUserToDeleteRows = false;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Location = new Point(1116, 12);
+            dataGridView1.Location = new Point(1018, 12);
             dataGridView1.MultiSelect = false;
             dataGridView1.Name = "dataGridView1";
             dataGridView1.ReadOnly = true;
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridView1.Size = new Size(306, 336);
+            dataGridView1.Size = new Size(367, 319);
             dataGridView1.TabIndex = 1;
             // 
             // lblState
             // 
             lblState.BackColor = Color.FromArgb(0, 192, 0);
-            lblState.Location = new Point(1116, 363);
+            lblState.Location = new Point(1018, 334);
             lblState.Name = "lblState";
-            lblState.Size = new Size(306, 43);
+            lblState.Size = new Size(367, 43);
             lblState.TabIndex = 2;
             // 
             // label1
@@ -112,7 +112,7 @@
             label1.AutoSize = true;
             label1.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label1.ForeColor = Color.Brown;
-            label1.Location = new Point(98, 14);
+            label1.Location = new Point(128, 9);
             label1.Name = "label1";
             label1.Size = new Size(52, 20);
             label1.TabIndex = 3;
@@ -123,7 +123,7 @@
             label2.AutoSize = true;
             label2.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label2.ForeColor = Color.Brown;
-            label2.Location = new Point(191, 690);
+            label2.Location = new Point(189, 604);
             label2.Name = "label2";
             label2.Size = new Size(136, 20);
             label2.TabIndex = 4;
@@ -134,7 +134,7 @@
             label3.AutoSize = true;
             label3.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label3.ForeColor = Color.Brown;
-            label3.Location = new Point(14, 690);
+            label3.Location = new Point(12, 604);
             label3.Name = "label3";
             label3.Size = new Size(62, 20);
             label3.TabIndex = 5;
@@ -146,7 +146,7 @@
             label4.AutoSize = true;
             label4.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label4.ForeColor = Color.Brown;
-            label4.Location = new Point(62, 158);
+            label4.Location = new Point(92, 123);
             label4.Name = "label4";
             label4.Size = new Size(88, 20);
             label4.TabIndex = 6;
@@ -158,7 +158,7 @@
             label5.AutoSize = true;
             label5.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label5.ForeColor = Color.Brown;
-            label5.Location = new Point(86, 62);
+            label5.Location = new Point(116, 47);
             label5.Name = "label5";
             label5.Size = new Size(64, 20);
             label5.TabIndex = 7;
@@ -169,7 +169,7 @@
             cbPlate.Anchor = AnchorStyles.Left;
             cbPlate.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             cbPlate.FormattingEnabled = true;
-            cbPlate.Location = new Point(156, 55);
+            cbPlate.Location = new Point(186, 41);
             cbPlate.Name = "cbPlate";
             cbPlate.Size = new Size(129, 33);
             cbPlate.TabIndex = 8;
@@ -179,7 +179,7 @@
             lbDate.Anchor = AnchorStyles.Left;
             lbDate.AutoSize = true;
             lbDate.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lbDate.Location = new Point(156, 11);
+            lbDate.Location = new Point(186, 6);
             lbDate.Name = "lbDate";
             lbDate.Size = new Size(17, 25);
             lbDate.TabIndex = 9;
@@ -190,7 +190,7 @@
             lbConfidence.Anchor = AnchorStyles.Left;
             lbConfidence.AutoSize = true;
             lbConfidence.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lbConfidence.Location = new Point(156, 155);
+            lbConfidence.Location = new Point(186, 120);
             lbConfidence.Name = "lbConfidence";
             lbConfidence.Size = new Size(17, 25);
             lbConfidence.TabIndex = 10;
@@ -201,7 +201,7 @@
             cbDirection.Anchor = AnchorStyles.Left;
             cbDirection.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             cbDirection.FormattingEnabled = true;
-            cbDirection.Location = new Point(156, 103);
+            cbDirection.Location = new Point(186, 79);
             cbDirection.Name = "cbDirection";
             cbDirection.Size = new Size(129, 33);
             cbDirection.TabIndex = 12;
@@ -212,7 +212,7 @@
             label6.AutoSize = true;
             label6.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label6.ForeColor = Color.Brown;
-            label6.Location = new Point(27, 110);
+            label6.Location = new Point(57, 85);
             label6.Name = "label6";
             label6.Size = new Size(123, 20);
             label6.TabIndex = 11;
@@ -232,27 +232,27 @@
             tableLayoutPanel1.Controls.Add(label6, 0, 2);
             tableLayoutPanel1.Controls.Add(cbDirection, 1, 2);
             tableLayoutPanel1.Controls.Add(lbDate, 1, 0);
-            tableLayoutPanel1.Controls.Add(cbPlate, 1, 1);
             tableLayoutPanel1.Controls.Add(label5, 0, 1);
-            tableLayoutPanel1.Location = new Point(1116, 409);
+            tableLayoutPanel1.Controls.Add(cbPlate, 1, 1);
+            tableLayoutPanel1.Location = new Point(1018, 381);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.RowCount = 6;
+            tableLayoutPanel1.RowCount = 5;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel1.Size = new Size(306, 263);
+            tableLayoutPanel1.Size = new Size(367, 191);
             tableLayoutPanel1.TabIndex = 13;
             // 
             // btnEdit
             // 
             btnEdit.Anchor = AnchorStyles.None;
             btnEdit.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnEdit.Location = new Point(11, 195);
+            btnEdit.Location = new Point(26, 155);
             btnEdit.Name = "btnEdit";
-            btnEdit.Size = new Size(131, 42);
+            btnEdit.Size = new Size(131, 33);
             btnEdit.TabIndex = 16;
             btnEdit.Text = "Изменить";
             btnEdit.UseVisualStyleBackColor = true;
@@ -261,9 +261,9 @@
             // 
             btnSave.Anchor = AnchorStyles.None;
             btnSave.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnSave.Location = new Point(167, 195);
+            btnSave.Location = new Point(213, 155);
             btnSave.Name = "btnSave";
-            btnSave.Size = new Size(124, 42);
+            btnSave.Size = new Size(124, 33);
             btnSave.TabIndex = 17;
             btnSave.Text = "Сохранить";
             btnSave.UseVisualStyleBackColor = true;
@@ -272,7 +272,7 @@
             // 
             btnPlay.Anchor = AnchorStyles.None;
             btnPlay.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnPlay.Location = new Point(912, 790);
+            btnPlay.Location = new Point(888, 702);
             btnPlay.Name = "btnPlay";
             btnPlay.Size = new Size(114, 42);
             btnPlay.TabIndex = 13;
@@ -282,7 +282,7 @@
             // tbSpot
             // 
             tbSpot.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbSpot.Location = new Point(82, 683);
+            tbSpot.Location = new Point(80, 597);
             tbSpot.Name = "tbSpot";
             tbSpot.ReadOnly = true;
             tbSpot.Size = new Size(52, 33);
@@ -295,7 +295,7 @@
             label7.Anchor = AnchorStyles.Left;
             label7.AutoSize = true;
             label7.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            label7.Location = new Point(333, 686);
+            label7.Location = new Point(331, 604);
             label7.Name = "label7";
             label7.Size = new Size(17, 25);
             label7.TabIndex = 14;
@@ -304,7 +304,7 @@
             // dgvPayments
             // 
             dgvPayments.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvPayments.Location = new Point(1055, 680);
+            dgvPayments.Location = new Point(1018, 575);
             dgvPayments.Name = "dgvPayments";
             dgvPayments.Size = new Size(367, 169);
             dgvPayments.TabIndex = 15;
@@ -314,7 +314,7 @@
             label8.AutoSize = true;
             label8.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label8.ForeColor = Color.Brown;
-            label8.Location = new Point(768, 691);
+            label8.Location = new Point(755, 603);
             label8.Name = "label8";
             label8.Size = new Size(68, 20);
             label8.TabIndex = 16;
@@ -325,7 +325,7 @@
             label9.AutoSize = true;
             label9.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label9.ForeColor = Color.Brown;
-            label9.Location = new Point(534, 690);
+            label9.Location = new Point(532, 604);
             label9.Name = "label9";
             label9.Size = new Size(51, 20);
             label9.TabIndex = 17;
@@ -336,7 +336,7 @@
             cbStatus.Anchor = AnchorStyles.Left;
             cbStatus.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             cbStatus.FormattingEnabled = true;
-            cbStatus.Location = new Point(843, 683);
+            cbStatus.Location = new Point(830, 595);
             cbStatus.Name = "cbStatus";
             cbStatus.Size = new Size(143, 33);
             cbStatus.TabIndex = 18;
@@ -346,7 +346,7 @@
             lbDebt.Anchor = AnchorStyles.Left;
             lbDebt.AutoSize = true;
             lbDebt.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lbDebt.Location = new Point(591, 686);
+            lbDebt.Location = new Point(589, 600);
             lbDebt.Name = "lbDebt";
             lbDebt.Size = new Size(23, 25);
             lbDebt.TabIndex = 19;
@@ -357,7 +357,7 @@
             label10.AutoSize = true;
             label10.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label10.ForeColor = Color.Brown;
-            label10.Location = new Point(771, 747);
+            label10.Location = new Point(758, 659);
             label10.Name = "label10";
             label10.Size = new Size(65, 20);
             label10.TabIndex = 20;
@@ -368,7 +368,7 @@
             cbTariff.Anchor = AnchorStyles.Left;
             cbTariff.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             cbTariff.FormattingEnabled = true;
-            cbTariff.Location = new Point(843, 740);
+            cbTariff.Location = new Point(830, 652);
             cbTariff.Name = "cbTariff";
             cbTariff.Size = new Size(143, 33);
             cbTariff.TabIndex = 24;
@@ -377,7 +377,7 @@
             // 
             btnAddStatus.Anchor = AnchorStyles.None;
             btnAddStatus.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnAddStatus.Location = new Point(993, 683);
+            btnAddStatus.Location = new Point(979, 596);
             btnAddStatus.Name = "btnAddStatus";
             btnAddStatus.Size = new Size(33, 33);
             btnAddStatus.TabIndex = 18;
@@ -389,7 +389,7 @@
             // 
             btnAddTariff.Anchor = AnchorStyles.None;
             btnAddTariff.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnAddTariff.Location = new Point(993, 739);
+            btnAddTariff.Location = new Point(979, 652);
             btnAddTariff.Name = "btnAddTariff";
             btnAddTariff.Size = new Size(33, 33);
             btnAddTariff.TabIndex = 28;
@@ -402,7 +402,7 @@
             cbOwnerSurname.Anchor = AnchorStyles.Left;
             cbOwnerSurname.Font = new Font("Microsoft Sans Serif", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             cbOwnerSurname.FormattingEnabled = true;
-            cbOwnerSurname.Location = new Point(108, 789);
+            cbOwnerSurname.Location = new Point(106, 703);
             cbOwnerSurname.Name = "cbOwnerSurname";
             cbOwnerSurname.Size = new Size(450, 32);
             cbOwnerSurname.TabIndex = 29;
@@ -411,7 +411,7 @@
             // 
             btnAddOwner.Anchor = AnchorStyles.None;
             btnAddOwner.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnAddOwner.Location = new Point(564, 788);
+            btnAddOwner.Location = new Point(561, 703);
             btnAddOwner.Name = "btnAddOwner";
             btnAddOwner.Size = new Size(33, 33);
             btnAddOwner.TabIndex = 30;
@@ -424,7 +424,7 @@
             label14.AutoSize = true;
             label14.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label14.ForeColor = Color.Brown;
-            label14.Location = new Point(626, 746);
+            label14.Location = new Point(624, 660);
             label14.Name = "label14";
             label14.Size = new Size(41, 20);
             label14.TabIndex = 31;
@@ -435,7 +435,7 @@
             label15.AutoSize = true;
             label15.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label15.ForeColor = Color.Brown;
-            label15.Location = new Point(449, 745);
+            label15.Location = new Point(447, 659);
             label15.Name = "label15";
             label15.Size = new Size(52, 20);
             label15.TabIndex = 32;
@@ -446,7 +446,7 @@
             label16.AutoSize = true;
             label16.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label16.ForeColor = Color.Brown;
-            label16.Location = new Point(233, 746);
+            label16.Location = new Point(231, 660);
             label16.Name = "label16";
             label16.Size = new Size(76, 20);
             label16.TabIndex = 33;
@@ -457,7 +457,7 @@
             label17.AutoSize = true;
             label17.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label17.ForeColor = Color.Brown;
-            label17.Location = new Point(13, 746);
+            label17.Location = new Point(11, 660);
             label17.Name = "label17";
             label17.Size = new Size(62, 20);
             label17.TabIndex = 34;
@@ -466,7 +466,7 @@
             // tbYear
             // 
             tbYear.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbYear.Location = new Point(670, 738);
+            tbYear.Location = new Point(668, 652);
             tbYear.Name = "tbYear";
             tbYear.ReadOnly = true;
             tbYear.Size = new Size(59, 33);
@@ -475,7 +475,7 @@
             // tbColor
             // 
             tbColor.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbColor.Location = new Point(503, 738);
+            tbColor.Location = new Point(501, 652);
             tbColor.Name = "tbColor";
             tbColor.ReadOnly = true;
             tbColor.Size = new Size(113, 33);
@@ -484,7 +484,7 @@
             // tbModel
             // 
             tbModel.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbModel.Location = new Point(309, 738);
+            tbModel.Location = new Point(307, 652);
             tbModel.Name = "tbModel";
             tbModel.ReadOnly = true;
             tbModel.Size = new Size(134, 33);
@@ -493,7 +493,7 @@
             // tbBrand
             // 
             tbBrand.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbBrand.Location = new Point(76, 739);
+            tbBrand.Location = new Point(74, 653);
             tbBrand.Name = "tbBrand";
             tbBrand.ReadOnly = true;
             tbBrand.Size = new Size(151, 33);
@@ -504,7 +504,7 @@
             label18.AutoSize = true;
             label18.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label18.ForeColor = Color.Brown;
-            label18.Location = new Point(615, 797);
+            label18.Location = new Point(613, 711);
             label18.Name = "label18";
             label18.Size = new Size(86, 20);
             label18.TabIndex = 39;
@@ -513,7 +513,7 @@
             // tbPhone
             // 
             tbPhone.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbPhone.Location = new Point(707, 790);
+            tbPhone.Location = new Point(705, 704);
             tbPhone.Name = "tbPhone";
             tbPhone.ReadOnly = true;
             tbPhone.Size = new Size(151, 33);
@@ -524,7 +524,7 @@
             label13.AutoSize = true;
             label13.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label13.ForeColor = Color.Brown;
-            label13.Location = new Point(14, 797);
+            label13.Location = new Point(12, 711);
             label13.Name = "label13";
             label13.Size = new Size(88, 20);
             label13.TabIndex = 23;
@@ -534,7 +534,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1434, 861);
+            ClientSize = new Size(1390, 777);
             Controls.Add(tbPhone);
             Controls.Add(label18);
             Controls.Add(tbBrand);

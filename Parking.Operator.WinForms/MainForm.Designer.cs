@@ -54,8 +54,9 @@
             gridHistory = new DataGridView();
             carGrid = new PictureBox();
             timerRefresh = new System.Windows.Forms.Timer(components);
-            stServer = new StatusStrip();
-            stLastUpdate = new StatusStrip();
+            ssStatus = new StatusStrip();
+            ssServer = new ToolStripStatusLabel();
+            ssLastUpdate = new ToolStripStatusLabel();
             MainTableLayer.SuspendLayout();
             HeaderTableLayout.SuspendLayout();
             pnlCapacity.SuspendLayout();
@@ -67,6 +68,7 @@
             tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)gridHistory).BeginInit();
             ((System.ComponentModel.ISupportInitialize)carGrid).BeginInit();
+            ssStatus.SuspendLayout();
             SuspendLayout();
             // 
             // MainTableLayer
@@ -83,7 +85,7 @@
             MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Absolute, 121F));
             MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Percent, 63.8198776F));
             MainTableLayer.RowStyles.Add(new RowStyle(SizeType.Percent, 36.1801224F));
-            MainTableLayer.Size = new Size(1584, 765);
+            MainTableLayer.Size = new Size(1525, 765);
             MainTableLayer.TabIndex = 0;
             // 
             // HeaderTableLayout
@@ -110,7 +112,7 @@
             HeaderTableLayout.Name = "HeaderTableLayout";
             HeaderTableLayout.RowCount = 1;
             HeaderTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            HeaderTableLayout.Size = new Size(1578, 115);
+            HeaderTableLayout.Size = new Size(1519, 115);
             HeaderTableLayout.TabIndex = 0;
             // 
             // lblShift
@@ -262,7 +264,7 @@
             tlpLive.Name = "tlpLive";
             tlpLive.RowCount = 1;
             tlpLive.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tlpLive.Size = new Size(1578, 405);
+            tlpLive.Size = new Size(1519, 405);
             tlpLive.TabIndex = 1;
             // 
             // carCardMain
@@ -331,8 +333,8 @@
             // tableLayoutPanel1
             // 
             tableLayoutPanel1.ColumnCount = 2;
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 69.13815F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30.86185F));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 75.1152039F));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24.8847923F));
             tableLayoutPanel1.Controls.Add(gridHistory, 0, 0);
             tableLayoutPanel1.Controls.Add(carGrid, 1, 0);
             tableLayoutPanel1.Dock = DockStyle.Fill;
@@ -340,7 +342,7 @@
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 1;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel1.Size = new Size(1578, 227);
+            tableLayoutPanel1.Size = new Size(1519, 227);
             tableLayoutPanel1.TabIndex = 2;
             // 
             // gridHistory
@@ -354,16 +356,16 @@
             gridHistory.ReadOnly = true;
             gridHistory.RowHeadersWidth = 49;
             gridHistory.ShowCellToolTips = false;
-            gridHistory.Size = new Size(1085, 221);
+            gridHistory.Size = new Size(1134, 221);
             gridHistory.TabIndex = 2;
             // 
             // carGrid
             // 
             carGrid.BackColor = SystemColors.AppWorkspace;
             carGrid.Dock = DockStyle.Fill;
-            carGrid.Location = new Point(1094, 3);
+            carGrid.Location = new Point(1143, 3);
             carGrid.Name = "carGrid";
-            carGrid.Size = new Size(481, 221);
+            carGrid.Size = new Size(373, 221);
             carGrid.TabIndex = 3;
             carGrid.TabStop = false;
             // 
@@ -371,31 +373,35 @@
             // 
             timerRefresh.Interval = 5000;
             // 
-            // stServer
+            // ssStatus
             // 
-            stServer.ImageScalingSize = new Size(19, 19);
-            stServer.Location = new Point(0, 743);
-            stServer.Name = "stServer";
-            stServer.Size = new Size(1584, 22);
-            stServer.TabIndex = 1;
-            stServer.Text = "Сервер...";
+            ssStatus.ImageScalingSize = new Size(19, 19);
+            ssStatus.Items.AddRange(new ToolStripItem[] { ssServer, ssLastUpdate });
+            ssStatus.Location = new Point(0, 743);
+            ssStatus.Name = "ssStatus";
+            ssStatus.Size = new Size(1525, 22);
+            ssStatus.SizingGrip = false;
+            ssStatus.TabIndex = 1;
+            ssStatus.Text = "Сервер...";
             // 
-            // stLastUpdate
+            // ssServer
             // 
-            stLastUpdate.ImageScalingSize = new Size(19, 19);
-            stLastUpdate.Location = new Point(0, 721);
-            stLastUpdate.Name = "stLastUpdate";
-            stLastUpdate.Size = new Size(1584, 22);
-            stLastUpdate.TabIndex = 2;
-            stLastUpdate.Text = "Обновлено: -";
+            ssServer.Name = "ssServer";
+            ssServer.Size = new Size(118, 17);
+            ssServer.Text = "toolStripStatusLabel1";
+            // 
+            // ssLastUpdate
+            // 
+            ssLastUpdate.Name = "ssLastUpdate";
+            ssLastUpdate.Size = new Size(118, 17);
+            ssLastUpdate.Text = "toolStripStatusLabel2";
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1584, 765);
-            Controls.Add(stLastUpdate);
-            Controls.Add(stServer);
+            ClientSize = new Size(1525, 765);
+            Controls.Add(ssStatus);
             Controls.Add(MainTableLayer);
             Name = "MainForm";
             Text = "Form1";
@@ -411,6 +417,8 @@
             tableLayoutPanel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)gridHistory).EndInit();
             ((System.ComponentModel.ISupportInitialize)carGrid).EndInit();
+            ssStatus.ResumeLayout(false);
+            ssStatus.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -437,12 +445,13 @@
         private Button btnRefresh;
         private DataGridView gridHistory;
         private System.Windows.Forms.Timer timerRefresh;
-        private StatusStrip stServer;
-        private StatusStrip stLastUpdate;
+        private StatusStrip ssStatus;
         private Panel pnlCapacity;
         private Label lblCapacity;
         private TableLayoutPanel tableLayoutPanel1;
         private PictureBox carGrid;
         private Label lblTime;
+        private ToolStripStatusLabel ssServer;
+        private ToolStripStatusLabel ssLastUpdate;
     }
 }

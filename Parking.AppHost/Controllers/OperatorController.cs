@@ -81,7 +81,6 @@ public sealed class OperatorController : ControllerBase
         on p.PlateNorm equals v.PlateNorm into vv
     from v in vv.Where(x => x.IsActive).DefaultIfEmpty()
 
-        // владелец (берём первого, можно потом выбирать payer)
     join vo in _db.VehicleOwners.AsNoTracking()
         on v.Id equals vo.VehicleId into vvo
     from vo in vvo.DefaultIfEmpty()
