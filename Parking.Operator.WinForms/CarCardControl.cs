@@ -45,7 +45,7 @@ public partial class CarCardControl : UserControl
         pnlBorder.BackColor =
             dto.IsVip ? Color.Gold :
             dto.Debt > 0 ? Color.Red :
-            dto.IsExpiring ? Color.YellowGreen : // можешь Yellow
+            dto.IsExpiring ? Color.YellowGreen :
             Color.LimeGreen;
 
         // Фото пока не грузим тут — это будет отдельный метод SetImage

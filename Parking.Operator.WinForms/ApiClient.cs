@@ -7,11 +7,9 @@ using static System.Net.WebRequestMethods;
 
 namespace Parking.Operator.WinForms;
 
-/// <summary>
 /// Клиент для обращения WinForms (сторожка) к серверу WebAPI.
 /// Сделано так, чтобы UI не подвисал: короткие таймауты, отмена запросов,
 /// аккуратные исключения, загрузка фото отдельным методом.
-/// </summary>
 public sealed class ApiClient : IDisposable
 {
     private readonly HttpClient _http;
@@ -41,15 +39,11 @@ public sealed class ApiClient : IDisposable
 
     public void Dispose() => _http.Dispose();
 
-    // -----------------------------
     // PUBLIC API (то, что дёргает UI)
-    // -----------------------------
 
-    /// <summary>
     /// Пинг сервера (чтобы показать "Сервер доступен/нет").
-    /// На сервере может быть endpoint GET /health или /api/health — см. ниже варианты.
+    /// На сервере может быть endpoint GET /health или /api/health
     /// Если его пока нет — метод можно не использовать.
-    /// </summary>
     public async Task<bool> PingAsync(CancellationToken ct)
     {
         // попробуем несколько стандартных путей
@@ -74,10 +68,8 @@ public sealed class ApiClient : IDisposable
         return false;
     }
 
-    /// <summary>
-    /// Основной запрос для твоей формы: всё одним махом.
+    /// Основной запрос 
     /// Endpoint на сервере: GET /api/operator/dashboard?search=...
-    /// </summary>
     public async Task<OperatorDashboardDto> GetOperatorDashboardAsync(string? search, CancellationToken ct)
     {
         var url = string.IsNullOrWhiteSpace(search)
@@ -106,8 +98,6 @@ public sealed class ApiClient : IDisposable
 
     /// Сохранение правок (номер/направление/поля авто и т.д.)
     /// Endpoint: POST /api/vehicle-registration/save
-    /// Сервер внутри:
-    /// - создаёт vehicle если нет
     /// - привязывает passage к plateNorm/vehicle
     /// - пересчитывает сессии если поменялся номер или направление
     public async Task SaveVehicleRegistrationAsync(VehicleRegSaveDto dto, CancellationToken ct = default)
@@ -122,7 +112,6 @@ public sealed class ApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(photoUrl))
             return null;
 
-        // поддержим и относительный и абсолютный url
         var requestUri = Uri.TryCreate(photoUrl, UriKind.Absolute, out var abs)
             ? abs
             : new Uri(BaseAddress, photoUrl.TrimStart('/'));
