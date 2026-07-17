@@ -364,3 +364,4 @@ FodyWeavers.xsd
 /Parking.Ingest.Camera/appsettings.json
 /Parking.AppHost/appsettings.json
 /Parking.Operator.WinForms/appsettings.json
+/Parking.Migrations/appsettings.json
