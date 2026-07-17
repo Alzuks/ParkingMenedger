@@ -44,16 +44,20 @@ public sealed class VehicleRegistrationController : ControllerBase
                 Surname = o.Surname,
                 FirstName = o.FirstName,
                 LastName = o.LastName,
-                Phone = o.Phone
+                Phone = o.Phone,
+                ResidentialAddress = o.ResidentialAddress
             })
             .ToListAsync(ct);
 
-        ctx.Statuses = new()
-    {
-        new StatusItemDto { Code = "Normal", Name = "Обычный" },
-        new StatusItemDto { Code = "Vip", Name = "VIP" },
-        new StatusItemDto { Code = "Black", Name = "Чёрный список" },
-    };
+        ctx.Statuses = await _db.WatchlistTypes.AsNoTracking()
+            .Where(x => x.IsActive)
+            .OrderBy(x => x.Name)
+            .Select(x => new StatusItemDto
+            {
+                Code = x.Code,
+                Name = x.Name
+            })
+            .ToListAsync(ct);
 
         ctx.KnownPlates = await _db.Vehicles.AsNoTracking()
             .Where(v => v.IsActive && v.PlateNorm != "")
@@ -94,37 +98,38 @@ public sealed class VehicleRegistrationController : ControllerBase
             ctx.Color = vehicle.Color;
             ctx.Year = vehicle.Year;
             ctx.StateLabel = "Есть в базе";
+            ctx.SelectedStatusCode = await _db.Watchlist.AsNoTracking()
+                .Include(x => x.WatchlistType)
+                .Where(x => x.PlateNorm == vehicle.PlateNorm && x.IsActive)
+                .OrderByDescending(x => x.Id)
+                .Select(x => x.WatchlistType.Code)
+                .FirstOrDefaultAsync(ct);
 
-            // выбранный владелец (VehicleOwner)
+            // выбранный владелец
             ctx.SelectedOwnerId = await _db.VehicleOwners.AsNoTracking()
                 .Where(vo => vo.VehicleId == vehicle.Id)
                 .OrderByDescending(vo => vo.IsPayer)
                 .Select(vo => (long?)vo.OwnerId)
                 .FirstOrDefaultAsync(ct);
 
-            // активный контракт по авто (последний активный)
-            var activeContract = await _db.ContractVehicles.AsNoTracking()
-                .Where(cv => cv.VehicleId == vehicle.Id)
-                .Select(cv => cv.Contract)
-                .Where(c => c.Status == "Active")
-                .OrderByDescending(c => c.StartAt)
+            // активная подписка по авто
+            var activePlace = await _db.ContractPlaces.AsNoTracking()
+                .Include(cp => cp.Contract)
+                .Include(cp => cp.Place)
+                .Include(cp => cp.Tariff)
+                .Where(cp => cp.Status == "Active")
+                .Where(cp => cp.Contract.Status == "Active")
+                .Where(cp => cp.Contract.ContractVehicles.Any(cv => cv.VehicleId == vehicle.Id))
+                .OrderByDescending(cp => cp.PaidUntil)
+                .ThenByDescending(cp => cp.StartAt)
                 .FirstOrDefaultAsync(ct);
 
-            if (activeContract != null)
+            if (activePlace != null)
             {
-                ctx.ActiveContractId = activeContract.Id;
-                ctx.SelectedTariffId = activeContract.TariffId;
-
-                // место по контракту
-                var cp = await _db.ContractPlaces.AsNoTracking()
-                    .Include(x => x.Place)
-                    .Where(x => x.ContractId == activeContract.Id)
-                    .OrderBy(x => x.PlaceId)
-                    .FirstOrDefaultAsync(ct);
-
-                ctx.PlaceNo = cp?.Place?.PlaceNo;
-
-                ctx.PlaceReadOnly = cp == null || cp.PlaceId == null;
+                ctx.ActiveContractId = activePlace.ContractId;
+                ctx.SelectedTariffId = activePlace.TariffId;
+                ctx.PlaceNo = activePlace.Place.PlaceNo;
+                ctx.PlaceReadOnly = true;
             }
 
             // платежи по активному контракту
@@ -138,8 +143,14 @@ public sealed class VehicleRegistrationController : ControllerBase
                     {
                         PaymentId = p.Id,
                         PaidAt = p.PaidAt.LocalDateTime,
-                        Employee = p.Employee != null ? (p.Employee.Surname + " " + p.Employee.FirstName) : null,
-                        Tariff = p.Contract.Tariff.Name,
+                        Employee = p.Employee != null
+                            ? p.Employee.Surname + " " + p.Employee.FirstName
+                            : null,
+
+                        Tariff = p.ContractServiceId != null
+                            ? p.ContractService.Tariff.Name
+                            : p.ContractPlace.Tariff.Name,
+
                         Amount = p.Amount
                     })
                     .ToListAsync(ct);
@@ -209,28 +220,39 @@ public sealed class VehicleRegistrationController : ControllerBase
 
         await _db.SaveChangesAsync(ct);
 
-        //VehicleOwner bind/update
+        // VehicleOwner bind/update
         if (dto.OwnerId.HasValue)
         {
             var ownerId = dto.OwnerId.Value;
 
-            // связка vehicle-owner
-            var vo = await _db.VehicleOwners
-                .FirstOrDefaultAsync(x => x.VehicleId == vehicle.Id, ct);
+            var existingLinks = await _db.VehicleOwners
+                .Where(x => x.VehicleId == vehicle.Id)
+                .ToListAsync(ct);
 
-            if (vo == null)
+            var existingSameOwner = existingLinks
+                .FirstOrDefault(x => x.OwnerId == ownerId);
+
+            if (existingSameOwner == null)
             {
+                // Нельзя менять OwnerId у существующей связи,
+                // потому что OwnerId входит в PK. Удаляем старые связи и создаём новую.
+                _db.VehicleOwners.RemoveRange(existingLinks);
+
                 _db.VehicleOwners.Add(new VehicleOwnerRow
                 {
-                    VehicleId = vehicle.Id, 
+                    VehicleId = vehicle.Id,
                     OwnerId = ownerId,
                     IsPayer = true
                 });
             }
             else
             {
-                vo.OwnerId = ownerId;
-                vo.IsPayer = true;
+                // Владелец тот же — просто делаем его плательщиком.
+                existingSameOwner.IsPayer = true;
+
+                // Пока у нас один основной владелец на машину.
+                foreach (var link in existingLinks.Where(x => x.OwnerId != ownerId))
+                    _db.VehicleOwners.Remove(link);
             }
 
             // телефон владельца
@@ -239,7 +261,44 @@ public sealed class VehicleRegistrationController : ControllerBase
             if (owner != null)
                 owner.Phone = string.IsNullOrWhiteSpace(phone) ? null : phone;
         }
+        else
+        {
+            // Если владельца очистили — убираем связи машины с владельцами.
+            var existingLinks = await _db.VehicleOwners
+                .Where(x => x.VehicleId == vehicle.Id)
+                .ToListAsync(ct);
 
+            _db.VehicleOwners.RemoveRange(existingLinks);
+        }
+        // Watchlist / status bind/update
+        var statusCode = (dto.StatusCode ?? "").Trim();
+
+        if (!string.IsNullOrWhiteSpace(statusCode))
+        {
+            var statusType = await _db.WatchlistTypes
+                .FirstOrDefaultAsync(x => x.Code == statusCode && x.IsActive, ct);
+
+            if (statusType == null)
+                return BadRequest($"Unknown status: {statusCode}");
+
+            var existingWatch = await _db.Watchlist
+                .FirstOrDefaultAsync(x => x.PlateNorm == dto.PlateNorm, ct);
+
+               if (existingWatch == null)
+            {
+                _db.Watchlist.Add(new WatchlistItemRow
+                {
+                    PlateNorm = dto.PlateNorm,
+                    WatchlistTypeId = statusType.Id,
+                    IsActive = true
+                });
+            }
+            else
+            {
+                existingWatch.WatchlistTypeId = statusType.Id;
+                existingWatch.IsActive = true;
+            }
+        }
         await _db.SaveChangesAsync(ct);
         return Ok();
     }

@@ -4,6 +4,7 @@ namespace Parking.Operator.WinForms.Models;
 
 public sealed class VehicleRegContextDto
 {
+    public string? SelectedStatusCode { get; set; }
     public bool VehicleExists { get; set; }
     public long? VehicleId { get; set; }
     public string? PlateNorm { get; set; }
@@ -27,7 +28,7 @@ public sealed class VehicleRegContextDto
     // UI/прочее
     public decimal Debt { get; set; }
     public string? StateLabel { get; set; }
-
+    
     public PassageRowDto? SelectedPassage { get; set; }
     public List<PassageRowDto> Passages { get; set; } = new();
     public List<PaymentRowDto> Payments { get; set; } = new();
@@ -37,6 +38,7 @@ public sealed class VehicleRegContextDto
     public List<OwnerItemDto> Owners { get; set; } = new();
 
     public List<string> KnownPlates { get; set; } = new();
+
 }
 
 public sealed class TariffItemDto { public long Id { get; set; } public string Name { get; set; } = ""; }
@@ -49,7 +51,7 @@ public sealed class OwnerItemDto
     public string FirstName { get; set; } = "";
     public string? LastName { get; set; }   
     public string? Phone { get; set; }
-
+    public string? ResidentialAddress { get; set; }
     public string DisplayName => $"{Surname} {FirstName} {LastName}".Trim();
 }
 

@@ -9,8 +9,10 @@
   </PropertyGroup>
 
     <ItemGroup>
+		<PackageReference Include="Npgsql" />
 		<PackageReference Include="System.Net.Http.Json" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+		<PackageReference Include="Telegram.Bot" />
 	</ItemGroup>
 
     <ItemGroup>

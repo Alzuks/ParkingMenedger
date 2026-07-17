@@ -26,6 +26,9 @@ namespace Parking.Operator.WinForms
         {
             InitializeComponent();
 
+            cbOwnerSurname.SelectedIndexChanged += (_, __) => UpdateOwnerButtonMode();
+            cbOwnerSurname.TextChanged += (_, __) => UpdateOwnerButtonMode();
+
             SetupPhotoViewer();
 
             // по умолчанию всё залочено
@@ -47,13 +50,15 @@ namespace Parking.Operator.WinForms
 
             // события
             Shown += async (_, __) => await LoadAllAsync();
-            btnAddOwner.Click += async (_, __) => await AddOwnerAsync();
+            btnAddOwner.Click += async (_, __) => await AddOrEditOwnerAsync();
             dataGridView1.SelectionChanged += (_, __) => OnSelectedPassageChanged();
 
             btnEdit.Click += (_, __) => EnterEditMode();
             btnSave.Click += async (_, __) => await SaveAsync();
 
             btnPlay.Click += (_, __) => OpenPaymentDialog();
+            btnAddTariff.Click += async (_, __) => await AddTariffAsync();
+            btnAddStatus.Click += async (_, __) => await AddStatusAsync();
 
             // направление руками
             cbDirection.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -76,12 +81,16 @@ namespace Parking.Operator.WinForms
             {
                 if (_binding) return;
                 if (_ctx == null) return;
+
                 _ctx.SelectedOwnerId = cbOwnerSurname.SelectedValue is long id ? id : (long?)null;
+
                 RefreshOwnerLabels();
+                UpdateOwnerButtonMode();
             };
         }
 
         //  GRIDS 
+
 
         private void SetupPassagesGrid()
         {
@@ -436,6 +445,20 @@ namespace Parking.Operator.WinForms
 
             // обязательно после выбора
             RefreshOwnerLabels();
+            UpdateOwnerButtonMode();
+            
+
+            // статус
+            cbStatus.SelectedIndex = -1;
+
+            if (!string.IsNullOrWhiteSpace(ctx.SelectedStatusCode))
+            {
+                cbStatus.SelectedValue = ctx.SelectedStatusCode;
+            }
+            else if (cbStatus.Items.Count > 0)
+            {
+                cbStatus.SelectedIndex = 0;
+            }
 
             // тариф
             cbTariff.SelectedIndex = -1;
@@ -503,6 +526,132 @@ namespace Parking.Operator.WinForms
 
         //  OWNER 
 
+        private async Task AddTariffAsync()
+        {
+            if (Api == null || _ctx == null)
+                return;
+
+            try
+            {
+                var placeTypes = await Api.GetPlaceTypesAsync(CancellationToken.None);
+
+                if (placeTypes.Count == 0)
+                {
+                    MessageBox.Show("Сначала нужно добавить типы мест: стандарт, комфорт, сервис и т.п.");
+                    return;
+                }
+
+                using var frm = new AddTariff(placeTypes)
+                {
+                    StartPosition = FormStartPosition.CenterParent
+                };
+
+                if (frm.ShowDialog(this) != DialogResult.OK)
+                    return;
+
+                var created = await Api.CreateTariffAsync(frm.Result, CancellationToken.None);
+                if (created == null)
+                    return;
+
+                var item = new TariffItemDto
+                {
+                    Id = created.Id,
+                    Name = created.Name
+                };
+
+                _ctx.Tariffs.Add(item);
+
+                cbTariff.DataSource = null;
+                cbTariff.DisplayMember = nameof(TariffItemDto.Name);
+                cbTariff.ValueMember = nameof(TariffItemDto.Id);
+                cbTariff.DataSource = _ctx.Tariffs;
+
+                cbTariff.SelectedValue = created.Id;
+            }
+            catch (ApiException ex)
+            {
+                MessageBox.Show(
+                    string.IsNullOrWhiteSpace(ex.Body) ? ex.Message : ex.Body,
+                    "Ошибка API");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка");
+            }
+        }
+        private async Task AddStatusAsync()
+        {
+            if (Api == null || _ctx == null)
+                return;
+
+            using var frm = new AddStatus { StartPosition = FormStartPosition.CenterParent };
+
+            if (frm.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            try
+            {
+                var created = await Api.CreateWatchlistTypeAsync(frm.Result, CancellationToken.None);
+                if (created == null)
+                    return;
+
+                var item = new StatusItemDto
+                {
+                    Code = created.Code,
+                    Name = created.Name
+                };
+
+                _ctx.Statuses.Add(item);
+
+                cbStatus.DataSource = null;
+                cbStatus.DisplayMember = nameof(StatusItemDto.Name);
+                cbStatus.ValueMember = nameof(StatusItemDto.Code);
+                cbStatus.DataSource = _ctx.Statuses;
+
+                cbStatus.SelectedValue = created.Code;
+            }
+            catch (ApiException ex)
+            {
+                MessageBox.Show(
+                    string.IsNullOrWhiteSpace(ex.Body) ? ex.Message : ex.Body,
+                    "Ошибка API");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка");
+            }
+        }
+        private OwnerItemDto? GetSelectedOwner()
+        {
+            if (_ctx == null)
+                return null;
+
+            if (cbOwnerSurname.SelectedItem is OwnerItemDto owner)
+                return owner;
+
+            if (cbOwnerSurname.SelectedValue is long ownerId)
+                return _ctx.Owners.FirstOrDefault(o => o.OwnerId == ownerId);
+
+            return null;
+        }
+
+        private void UpdateOwnerButtonMode()
+        {
+            var owner = GetSelectedOwner();
+
+            // "+" = добавить, "/" = редактировать
+            btnAddOwner.Text = owner == null ? "+" : "/";
+        }
+
+        private async Task AddOrEditOwnerAsync()
+        {
+            var owner = GetSelectedOwner();
+
+            if (owner == null)
+                await AddOwnerAsync();
+            else
+                await EditOwnerAsync(owner);
+        }
 
         private async Task AddOwnerAsync()
         {
@@ -523,7 +672,8 @@ namespace Parking.Operator.WinForms
                     Surname = created.Surname,
                     FirstName = created.FirstName,
                     LastName = created.LastName,
-                    Phone = created.Phone
+                    Phone = created.Phone,
+                    ResidentialAddress = created.ResidentialAddress
                 });
 
                 var keepSelected = created.OwnerId;
@@ -537,16 +687,60 @@ namespace Parking.Operator.WinForms
                 _ctx.SelectedOwnerId = keepSelected;
 
                 RefreshOwnerLabels();
+                UpdateOwnerButtonMode();
             }
             catch (ApiException ex)
             {
-                MessageBox.Show(ex.Body ?? ex.Message, "Ошибка API");
+                MessageBox.Show(string.IsNullOrWhiteSpace(ex.Body) ? ex.Message : ex.Body, "Ошибка API");
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Ошибка");
             }
         }
+
+        private async Task EditOwnerAsync(OwnerItemDto owner)
+        {
+            if (Api == null || _ctx == null) return;
+
+            using var frm = new AddOwnerForm(owner) { StartPosition = FormStartPosition.CenterParent };
+            if (frm.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            try
+            {
+                var updated = await Api.UpdateOwnerAsync(owner.OwnerId, frm.Result, CancellationToken.None);
+                if (updated == null) return;
+
+                owner.Surname = updated.Surname;
+                owner.FirstName = updated.FirstName;
+                owner.LastName = updated.LastName;
+                owner.Phone = updated.Phone;
+                owner.ResidentialAddress = updated.ResidentialAddress;
+
+                var keepSelected = updated.OwnerId;
+
+                cbOwnerSurname.DataSource = null;
+                cbOwnerSurname.DisplayMember = nameof(OwnerItemDto.DisplayName);
+                cbOwnerSurname.ValueMember = nameof(OwnerItemDto.OwnerId);
+                cbOwnerSurname.DataSource = _ctx.Owners;
+
+                cbOwnerSurname.SelectedValue = keepSelected;
+                _ctx.SelectedOwnerId = keepSelected;
+
+                RefreshOwnerLabels();
+                UpdateOwnerButtonMode();
+            }
+            catch (ApiException ex)
+            {
+                MessageBox.Show(string.IsNullOrWhiteSpace(ex.Body) ? ex.Message : ex.Body, "Ошибка API");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка");
+            }
+        }
+
 
 
         //  MODES 
@@ -610,6 +804,7 @@ namespace Parking.Operator.WinForms
                 btnAddOwner.Visible = true;
                 btnAddStatus.Visible = true;
                 btnAddTariff.Visible = true;
+                UpdateOwnerButtonMode();
             }
 
             btnEdit.Enabled = false;

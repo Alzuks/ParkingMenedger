@@ -37,6 +37,21 @@ public sealed class ApiClient : IDisposable
         };
     }
 
+    public async Task<OwnerCreatedDto?> UpdateOwnerAsync(
+    long ownerId,
+    OwnerCreateDto dto,
+    CancellationToken ct = default)
+    {
+        using var resp = await _http.PutAsJsonAsync($"/api/owners/{ownerId}", dto, ct);
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            var body = await resp.Content.ReadAsStringAsync(ct);
+            throw new ApiException((int)resp.StatusCode, body);
+        }
+
+        return await resp.Content.ReadFromJsonAsync<OwnerCreatedDto>(cancellationToken: ct);
+    }
     public void Dispose() => _http.Dispose();
 
     // PUBLIC API (то, что дёргает UI)
@@ -173,7 +188,48 @@ CancellationToken ct)
         if (!resp.IsSuccessStatusCode)
             throw await ApiException.FromHttpAsync(resp, ct);
     }
+    public async Task<WatchlistTypeCreatedDto?> CreateWatchlistTypeAsync(
+    WatchlistTypeCreateDto dto,
+    CancellationToken ct = default)
+    {
+        using var resp = await _http.PostAsJsonAsync("/api/watchlist-types", dto, ct);
 
+        if (!resp.IsSuccessStatusCode)
+        {
+            var body = await resp.Content.ReadAsStringAsync(ct);
+            throw new ApiException((int)resp.StatusCode, body);
+        }
+
+        return await resp.Content.ReadFromJsonAsync<WatchlistTypeCreatedDto>(cancellationToken: ct);
+    }
+    public async Task<List<PlaceTypeDto>> GetPlaceTypesAsync(CancellationToken ct = default)
+    {
+        using var resp = await _http.GetAsync("/api/place-types", ct);
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            var body = await resp.Content.ReadAsStringAsync(ct);
+            throw new ApiException((int)resp.StatusCode, body);
+        }
+
+        return await resp.Content.ReadFromJsonAsync<List<PlaceTypeDto>>(cancellationToken: ct)
+               ?? new List<PlaceTypeDto>();
+    }
+
+    public async Task<TariffCreatedDto?> CreateTariffAsync(
+        TariffCreateDto dto,
+        CancellationToken ct = default)
+    {
+        using var resp = await _http.PostAsJsonAsync("/api/tariffs", dto, ct);
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            var body = await resp.Content.ReadAsStringAsync(ct);
+            throw new ApiException((int)resp.StatusCode, body);
+        }
+
+        return await resp.Content.ReadFromJsonAsync<TariffCreatedDto>(cancellationToken: ct);
+    }
 }
 
 /// исключение для отображения в UI/логах.
@@ -201,6 +257,7 @@ public sealed class ApiException : Exception
         var msg = $"{(int)resp.StatusCode} {resp.ReasonPhrase}";
         return new ApiException((int)resp.StatusCode, msg, body);
     }
+
 
 }
 

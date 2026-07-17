@@ -14,11 +14,11 @@ public readonly record struct LicensePlate(string Value)
         // очистка номера
         plate = Regex.Replace(plate, @"[^A-Z0-9]", "");
 
-        // убираем "полосу" (I/F/1/L/|)
+        // убираем "полосу" (P/T/I/F/1/L/|)
         //   под локальный шаблон
         if (plate.Length == 7 && !LocalPattern.IsMatch(plate))
         {
-            var withoutSep = Regex.Replace(plate, @"^(I|1|L|F|\|)", "");
+            var withoutSep = Regex.Replace(plate, @"^(P|T|I|1|L|F|\|)", "");
             if (LocalPattern.IsMatch(withoutSep))
                 plate = withoutSep;
         }

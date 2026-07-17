@@ -1,8 +1,10 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Parking.Operator.WinForms.Models;
 using System;
 using System.ComponentModel;
 using System.Security.Policy;
+using Telegram.Bot;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Parking.Operator.WinForms;
 
@@ -14,7 +16,7 @@ public partial class MainForm : Form
     private System.Windows.Forms.Timer? _searchDebounce;
     private CancellationTokenSource? _imgCts;
 
-    // ��� ����������� �������� �� url
+    // кеш загруженных картинок по url
     private readonly Dictionary<string, (Image Img, DateTime LoadedAt)> _imageCache = new();
 
     private readonly TimeSpan _imageCacheTtl = TimeSpan.FromMinutes(2);
@@ -143,7 +145,7 @@ public partial class MainForm : Form
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
         {
             Name = "colTime",
-            HeaderText = "�����",
+            HeaderText = "Время",
             DataPropertyName = "Time",
             Width = 170
         });
@@ -151,7 +153,7 @@ public partial class MainForm : Form
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
         {
             Name = "colDir",
-            HeaderText = "����",
+            HeaderText = "Напр",
             DataPropertyName = "Direction",
             Width = 87
         });
@@ -159,7 +161,7 @@ public partial class MainForm : Form
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
         {
             Name = "colPlate",
-            HeaderText = "�����",
+            HeaderText = "Номер",
             DataPropertyName = "Plate",
             DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter },
             Width = 100
@@ -168,7 +170,7 @@ public partial class MainForm : Form
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
         {
             Name = "colBrand",
-            HeaderText = "�����",
+            HeaderText = "Марка",
             DataPropertyName = "Brand",
             Width = 180
         });
@@ -176,7 +178,7 @@ public partial class MainForm : Form
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
         {
             Name = "colOwner",
-            HeaderText = "���",
+            HeaderText = "ФИО",
             DataPropertyName = "OwnerName",
             Width = 245
         });
@@ -184,7 +186,7 @@ public partial class MainForm : Form
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
         {
             Name = "colNextPay",
-            HeaderText = "����.���.",
+            HeaderText = "След.опл.",
             DataPropertyName = "NextPaymentDate",
             Width = 100
         });
@@ -193,7 +195,7 @@ public partial class MainForm : Form
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
         {
             Name = "colTariff",
-            HeaderText = "�����",
+            HeaderText = "Тариф",
             DataPropertyName = "TariffName",
             Width = 120
         });
@@ -201,12 +203,12 @@ public partial class MainForm : Form
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
         {
             Name = "colPlace",
-            HeaderText = "�����",
+            HeaderText = "Место",
             DataPropertyName = "PlaceNo",
             Width = 70
         });
 
-        // �������������� ����/�����
+        // форматирование даты/денег
         gridHistory.CellFormatting += (_, e) =>
         {
             if (gridHistory.Columns[e.ColumnIndex].Name == "colTime" && e.Value is DateTime dt)
@@ -250,7 +252,7 @@ public partial class MainForm : Form
 
         try
         {
-            SetServerOk("����������...");
+            SetServerOk("Обновление...");
 
             var dto = await _api.GetOperatorDashboardAsync(txtSearch.Text, ct);
             ssLastUpdate.Text = $"GridRows = {dto.GridRows?.Count ?? -1}";
@@ -271,7 +273,7 @@ public partial class MainForm : Form
             _imgCts = new CancellationTokenSource();
             _ = LoadCardImagesAsync(dto.LastPassages, _imgCts.Token);
 
-            ssLastUpdate.Text = $"���������: {DateTime.Now:dd.MM.yyyy HH:mm:ss}";
+            ssLastUpdate.Text = $"Обновлено: {DateTime.Now:dd.MM.yyyy HH:mm:ss}";
 
             SetServerOk("OK");
             BindGrid(dto.GridRows);
@@ -285,16 +287,16 @@ public partial class MainForm : Form
         }
         catch (ApiException ex)
         {
-            SetServerBad($"������ API: {ex.StatusCode}");
+            SetServerBad($"Ошибка API: {ex.StatusCode}");
             ssLastUpdate.Text = ex.Body is null ? ex.Message : ex.Body;
         }
         catch (HttpRequestException)
         {
-            SetServerBad("������ ����������");
+            SetServerBad("Сервер недоступен");
         }
         catch (Exception ex)
         {
-            SetServerBad("������");
+            SetServerBad("Ошибка");
             ssLastUpdate.Text = ex.GetType().Name;
         }
     }
@@ -316,7 +318,7 @@ public partial class MainForm : Form
             if (r.DataBoundItem is GridRowDto dto && dto.PassageId == selectedId.Value)
             {
                 r.Selected = true;
-                gridHistory.CurrentCell = r.Cells[0]; // ����� CurrentRow ���� ���� �������
+                gridHistory.CurrentCell = r.Cells[0]; // чтобы CurrentRow стал этой строкой
                 break;
             }
         }
@@ -325,7 +327,7 @@ public partial class MainForm : Form
 
     private void BindHeader(OperatorDashboardDto dto)
     {
-        // �������� ������/�����
+        // Прогресс занято/всего
         progressCapacity.Maximum = Math.Max(1, dto.Capacity.Total);
         progressCapacity.Value = Math.Min(dto.Capacity.Used, progressCapacity.Maximum);
 
@@ -410,7 +412,7 @@ public partial class MainForm : Form
         });
 
         try { await Task.WhenAll(tasks); }
-        catch (OperationCanceledException) {}
+        catch (OperationCanceledException) { }
     }
 
     private async Task<Image> GetCachedOrLoadImageAsync(string photoUrl, CancellationToken ct)
@@ -430,7 +432,7 @@ public partial class MainForm : Form
 
         lock (_imageCache)
         {
-            // �������� ���
+            // заменяем кеш
             if (_imageCache.TryGetValue(photoUrl, out var old))
                 old.Img.Dispose();
 
@@ -460,12 +462,54 @@ public partial class MainForm : Form
 
     private void SetServerOk(string text)
     {
-        ssServer.Text = $"������: {text}";
+        ssServer.Text = $"Сервер: {text}";
     }
 
     private void SetServerBad(string text)
     {
-        ssServer.Text = $"������: {text}";
+        ssServer.Text = $"Сервер: {text}";
+    }
+    private async Task PublishParkingPostAsync()
+    {
+        var botClient = new TelegramBotClient("8688889179:AAFmARAZtrpkkNIbGn0mEhb3yDIhdZEZwts");
+
+        string channelUsername = "@girplus";
+
+        string postText =
+            "Уважаемые клиенты!\n\n" +
+            "Для нас важно сделать стоянку GiR Plus удобнее и полезнее для постоянных пользователей.\n\n" +
+            "Вы можете:\n" +
+            "— связаться с администрацией\n" +
+            "— предложить новую услугу\n" +
+            "— предложить улучшение стоянки\n\n" +
+            "Выберите нужный пункт с помощью кнопок ниже.";
+
+        var keyboard = new InlineKeyboardMarkup(new[]
+        {
+        new[]
+        {
+            InlineKeyboardButton.WithUrl(
+                "📩 Связь с администрацией",
+                "https://t.me/girplus_bot?start=admin")
+        },
+        new[]
+        {
+            InlineKeyboardButton.WithUrl(
+                "💡 Предложить услугу",
+                "https://t.me/girplus_bot?start=service")
+        },
+        new[]
+        {
+            InlineKeyboardButton.WithUrl(
+                "🛠 Предложить улучшение",
+                "https://t.me/girplus_bot?start=improve")
+        }
+    });
+
+        await botClient.SendMessage(
+            chatId: channelUsername,
+            text: postText,
+            replyMarkup: keyboard);
     }
 
     private async void btnRefresh_Click(object sender, EventArgs e)
@@ -481,6 +525,19 @@ public partial class MainForm : Form
     private void lblCapacity_Click(object sender, EventArgs e)
     {
 
+    }
+
+    private async void btnPublishClientPost_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            await PublishParkingPostAsync();
+            MessageBox.Show("Пост опубликован.");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Ошибка публикации: " + ex.Message);
+        }
     }
 }
 

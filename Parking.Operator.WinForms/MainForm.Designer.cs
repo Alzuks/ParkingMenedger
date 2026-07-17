@@ -57,6 +57,7 @@
             ssStatus = new StatusStrip();
             ssServer = new ToolStripStatusLabel();
             ssLastUpdate = new ToolStripStatusLabel();
+            btnPublishClientPost = new Button();
             MainTableLayer.SuspendLayout();
             HeaderTableLayout.SuspendLayout();
             pnlCapacity.SuspendLayout();
@@ -259,6 +260,7 @@
             tlpLive.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 236F));
             tlpLive.Controls.Add(carCardMain, 0, 0);
             tlpLive.Controls.Add(tlpRight, 1, 0);
+            tlpLive.Controls.Add(btnPublishClientPost, 2, 0);
             tlpLive.Dock = DockStyle.Fill;
             tlpLive.Location = new Point(3, 124);
             tlpLive.Name = "tlpLive";
@@ -396,6 +398,16 @@
             ssLastUpdate.Size = new Size(118, 17);
             ssLastUpdate.Text = "toolStripStatusLabel2";
             // 
+            // btnPublishClientPost
+            // 
+            btnPublishClientPost.Location = new Point(1441, 3);
+            btnPublishClientPost.Name = "btnPublishClientPost";
+            btnPublishClientPost.Size = new Size(75, 39);
+            btnPublishClientPost.TabIndex = 2;
+            btnPublishClientPost.Text = "Telega";
+            btnPublishClientPost.UseVisualStyleBackColor = true;
+            btnPublishClientPost.Click += btnPublishClientPost_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -453,5 +465,6 @@
         private Label lblTime;
         private ToolStripStatusLabel ssServer;
         private ToolStripStatusLabel ssLastUpdate;
+        private Button btnPublishClientPost;
     }
 }

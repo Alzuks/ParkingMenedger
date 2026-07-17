@@ -2,6 +2,7 @@
 
 public sealed class VehicleRegContextDto
 {
+    public string? SelectedStatusCode { get; set; }
     public bool VehicleExists { get; set; }
     public long? VehicleId { get; set; }
     public string? PlateNorm { get; set; }
@@ -48,8 +49,9 @@ public sealed class OwnerItemDto
     public string FirstName { get; set; } = "";
     public string? LastName { get; set; }   // у тебя это “отчество”
     public string? Phone { get; set; }
-
+    public string? ResidentialAddress { get; set; }
     public string DisplayName => $"{Surname} {FirstName} {LastName}".Trim();
+
 }
 
 public sealed class VehicleRegSaveDto
