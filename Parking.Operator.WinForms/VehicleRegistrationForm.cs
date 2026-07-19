@@ -21,6 +21,7 @@ namespace Parking.Operator.WinForms
         private bool _photoDragging;
         private Point _photoDragStart;
         private bool _binding;
+        public bool IsSuper { get; set; }
 
         public VehicleRegistrationForm()
         {
@@ -49,7 +50,11 @@ namespace Parking.Operator.WinForms
             };
 
             // события
-            Shown += async (_, __) => await LoadAllAsync();
+            Shown += async (_, __) =>
+            {
+                await LoadAllAsync();
+                ApplyRoleUi();
+            };
             btnAddOwner.Click += async (_, __) => await AddOrEditOwnerAsync();
             dataGridView1.SelectionChanged += (_, __) => OnSelectedPassageChanged();
 
@@ -89,6 +94,11 @@ namespace Parking.Operator.WinForms
             };
         }
 
+        private void ApplyRoleUi()
+        {
+            btnAddStatus.Enabled = IsSuper;
+            btnAddTariff.Enabled = IsSuper;
+        }
         //  GRIDS 
 
 
@@ -108,7 +118,7 @@ namespace Parking.Operator.WinForms
                 Name = "colDate",
                 HeaderText = "Дата",
                 DataPropertyName = nameof(PassageRowDto.OccurredAt),
-                Width = 150,
+                Width = 80,
                 DefaultCellStyle = new DataGridViewCellStyle { Format = "dd.MM HH:mm:ss" }
             });
 
@@ -154,7 +164,7 @@ namespace Parking.Operator.WinForms
                 Name = "colPaidAt",
                 HeaderText = "ДатаВремя",
                 DataPropertyName = nameof(PaymentRowDto.PaidAt),
-                Width = 140,
+                Width = 70,
                 DefaultCellStyle = new DataGridViewCellStyle { Format = "dd.MM HH:mm" }
             });
 
@@ -163,7 +173,7 @@ namespace Parking.Operator.WinForms
                 Name = "colEmp",
                 HeaderText = "Сотрудник",
                 DataPropertyName = nameof(PaymentRowDto.Employee),
-                Width = 120
+                Width = 110
             });
 
             dgvPayments.Columns.Add(new DataGridViewTextBoxColumn
@@ -171,7 +181,7 @@ namespace Parking.Operator.WinForms
                 Name = "colTar",
                 HeaderText = "Тариф",
                 DataPropertyName = nameof(PaymentRowDto.Tariff),
-                Width = 120
+                Width = 90
             });
 
             dgvPayments.Columns.Add(new DataGridViewTextBoxColumn
@@ -446,7 +456,7 @@ namespace Parking.Operator.WinForms
             // обязательно после выбора
             RefreshOwnerLabels();
             UpdateOwnerButtonMode();
-            
+
 
             // статус
             cbStatus.SelectedIndex = -1;
@@ -483,7 +493,7 @@ namespace Parking.Operator.WinForms
             tbPhone.Text = owner?.Phone ?? "";
         }
 
-  
+
         private void OnSelectedPassageChanged()
         {
             if (_ctx == null) return;
@@ -884,9 +894,43 @@ namespace Parking.Operator.WinForms
 
         private void OpenPaymentDialog()
         {
-            var frm1 = new paymentForm { StartPosition = FormStartPosition.CenterParent };
-            if (frm1.ShowDialog(this) != DialogResult.OK)
+            if (Api == null || _ctx == null)
                 return;
+
+            var plate = (cbPlate.Text ?? "").Trim();
+
+            if (string.IsNullOrWhiteSpace(plate))
+            {
+                MessageBox.Show("Сначала укажите номер автомобиля.");
+                return;
+            }
+
+            if (cbTariff.SelectedValue is not long tariffId)
+            {
+                MessageBox.Show("Сначала выберите тариф.");
+                return;
+            }
+
+            var ownerId = cbOwnerSurname.SelectedValue is long o ? o : (long?)null;
+            var statusCode = cbStatus.SelectedValue?.ToString();
+
+            using var frm = new paymentForm(
+                Api,
+                plate,
+                _ctx.VehicleId,
+                ownerId,
+                tariffId,
+                statusCode,
+                canSelectEmployee: IsSuper) // сейчас ты/админ. Для оператора потом false.
+            {
+                StartPosition = FormStartPosition.CenterParent
+            };
+
+            if (frm.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            _ = LoadAllAsync();
         }
+
     }
 }

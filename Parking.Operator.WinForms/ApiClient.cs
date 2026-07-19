@@ -230,7 +230,75 @@ CancellationToken ct)
 
         return await resp.Content.ReadFromJsonAsync<TariffCreatedDto>(cancellationToken: ct);
     }
+    public async Task<PaymentContextDto?> GetPaymentContextAsync(
+    string plateNorm,
+    long tariffId,
+    DateTimeOffset paidAt,
+    int periodCount,
+    CancellationToken ct = default)
+    {
+        var url =
+            $"/api/payments/context" +
+            $"?plateNorm={Uri.EscapeDataString(plateNorm)}" +
+            $"&tariffId={tariffId}" +
+            $"&paidAt={Uri.EscapeDataString(paidAt.ToUniversalTime().ToString("O"))}" +
+            $"&periodCount={periodCount}";
+
+        using var resp = await _http.GetAsync(url, ct);
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            var body = await resp.Content.ReadAsStringAsync(ct);
+            throw new ApiException((int)resp.StatusCode, body);
+        }
+
+        return await resp.Content.ReadFromJsonAsync<PaymentContextDto>(cancellationToken: ct);
+    }
+
+    public async Task<PaymentCreatedDto?> CreatePaymentAsync(
+        PaymentCreateDto dto,
+        CancellationToken ct = default)
+    {
+        using var resp = await _http.PostAsJsonAsync("/api/payments", dto, ct);
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            var body = await resp.Content.ReadAsStringAsync(ct);
+            throw new ApiException((int)resp.StatusCode, body);
+        }
+
+        return await resp.Content.ReadFromJsonAsync<PaymentCreatedDto>(cancellationToken: ct);
+    }
+    public async Task<List<LoginRoleDto>> GetLoginRolesAsync(CancellationToken ct = default)
+    {
+        using var resp = await _http.GetAsync("/api/auth/roles", ct);
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            var body = await resp.Content.ReadAsStringAsync(ct);
+            throw new ApiException((int)resp.StatusCode, body);
+        }
+
+        return await resp.Content.ReadFromJsonAsync<List<LoginRoleDto>>(cancellationToken: ct)
+               ?? new List<LoginRoleDto>();
+    }
+
+    public async Task<LoginResultDto?> LoginAsync(
+        LoginRequestDto dto,
+        CancellationToken ct = default)
+    {
+        using var resp = await _http.PostAsJsonAsync("/api/auth/login", dto, ct);
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            var body = await resp.Content.ReadAsStringAsync(ct);
+            throw new ApiException((int)resp.StatusCode, body);
+        }
+
+        return await resp.Content.ReadFromJsonAsync<LoginResultDto>(cancellationToken: ct);
+    }
 }
+
 
 /// исключение для отображения в UI/логах.
 public sealed class ApiException : Exception

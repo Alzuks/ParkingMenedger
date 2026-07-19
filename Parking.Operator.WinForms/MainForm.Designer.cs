@@ -50,6 +50,7 @@
             carCard2 = new CarCardControl();
             carCard3 = new CarCardControl();
             carCard4 = new CarCardControl();
+            btnPublishClientPost = new Button();
             tableLayoutPanel1 = new TableLayoutPanel();
             gridHistory = new DataGridView();
             carGrid = new PictureBox();
@@ -57,7 +58,6 @@
             ssStatus = new StatusStrip();
             ssServer = new ToolStripStatusLabel();
             ssLastUpdate = new ToolStripStatusLabel();
-            btnPublishClientPost = new Button();
             MainTableLayer.SuspendLayout();
             HeaderTableLayout.SuspendLayout();
             pnlCapacity.SuspendLayout();
@@ -332,6 +332,17 @@
             carCard4.Size = new Size(351, 192);
             carCard4.TabIndex = 3;
             // 
+            // btnPublishClientPost
+            // 
+            btnPublishClientPost.Location = new Point(1441, 3);
+            btnPublishClientPost.Name = "btnPublishClientPost";
+            btnPublishClientPost.Size = new Size(75, 36);
+            btnPublishClientPost.TabIndex = 2;
+            btnPublishClientPost.Text = "Telega";
+            btnPublishClientPost.UseVisualStyleBackColor = true;
+            btnPublishClientPost.Visible = false;
+            btnPublishClientPost.Click += btnPublishClientPost_Click;
+            // 
             // tableLayoutPanel1
             // 
             tableLayoutPanel1.ColumnCount = 2;
@@ -397,16 +408,6 @@
             ssLastUpdate.Name = "ssLastUpdate";
             ssLastUpdate.Size = new Size(118, 17);
             ssLastUpdate.Text = "toolStripStatusLabel2";
-            // 
-            // btnPublishClientPost
-            // 
-            btnPublishClientPost.Location = new Point(1441, 3);
-            btnPublishClientPost.Name = "btnPublishClientPost";
-            btnPublishClientPost.Size = new Size(75, 39);
-            btnPublishClientPost.TabIndex = 2;
-            btnPublishClientPost.Text = "Telega";
-            btnPublishClientPost.UseVisualStyleBackColor = true;
-            btnPublishClientPost.Click += btnPublishClientPost_Click;
             // 
             // MainForm
             // 

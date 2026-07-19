@@ -32,7 +32,7 @@ public partial class CarCardControl : UserControl
 
     public void Bind(CarCardDto dto)
     {
-        passageId = dto.passageId;
+        passageId = dto.PassageId;
 
         lblPlate.Text = (dto.Plate);
 

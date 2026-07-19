@@ -8,9 +8,30 @@ public sealed record OperatorDashboardDto(
     List<GridRowDto> GridRows
 );
 
-public sealed record CapacityDto(int Total, int Used);
-public sealed record ShiftDto(int ShiftNumber, int DayOfYear);
-public sealed record OperatorDto(string FullName, string? PhotoUrl);
+public sealed record CapacityDto(
+    int Total,
+    int Used
+);
+
+public sealed record ShiftDto(
+    int DayOfYear
+);
+
+public sealed record OperatorDto(
+    string FullName,
+    string? PhotoUrl
+);
+
+public sealed record CarCardDto(
+    long PassageId,
+    string Plate,
+    string Direction,
+    DateTime Time,
+    decimal Debt,
+    bool IsVip,
+    bool IsExpiring,
+    string? PhotoUrl
+);
 
 public sealed record GridRowDto(
     long PassageId,
@@ -20,16 +41,7 @@ public sealed record GridRowDto(
     string? Brand,
     string? OwnerName,
     DateTime? NextPaymentDate,
-    decimal Debt,
     string? TariffName,
     string? PlaceNo,
-    string? PhotoUrl
-);
-public sealed record CarCardDto(
-    long passageId,
-    string Plate,
-    decimal Debt,
-    bool IsVip,
-    bool IsExpiring,
     string? PhotoUrl
 );

@@ -21,14 +21,17 @@ public partial class MainForm : Form
 
     private readonly TimeSpan _imageCacheTtl = TimeSpan.FromMinutes(2);
 
+    private LoginResultDto? _login;
+    private bool _isSuper;
     public MainForm()
     {
         InitializeComponent();
 
-        var config = new ConfigurationBuilder()
+     var config = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: false)
     .Build();
+        
 
         var baseUrl = config["Api:BaseUrl"];
 
@@ -38,14 +41,43 @@ public partial class MainForm : Form
         SetupGrid();
         WireUi();
 
-        Shown += async (_, __) =>
-        {
-            timerRefresh.Interval = 7000;
-            timerRefresh.Start();
-            await ReloadDashboardAsync();
-        };
+        Shown += async (_, __) => await StartAsync();
     }
 
+    private async Task StartAsync()
+    {
+        using var loginForm = new LoginForm(_api)
+        {
+            StartPosition = FormStartPosition.CenterParent
+        };
+
+        if (loginForm.ShowDialog(this) != DialogResult.OK || loginForm.Result == null)
+        {
+            Close();
+            return;
+        }
+
+        _login = loginForm.Result;
+        _isSuper = loginForm.IsSuper;
+
+        lblOperatorName.Text = _login.RoleName;
+
+        ApplyRoleUi();
+
+        timerRefresh.Interval = 7000;
+        timerRefresh.Start();
+
+        await ReloadDashboardAsync();
+
+        ApplyRoleUi();
+    }
+    private void ApplyRoleUi()
+    {
+        btnPublishClientPost.Visible = _isSuper;
+
+        // Потом сюда добавишь остальные кнопки MainForm,
+        // которые оператору видеть не надо.
+    }
     private void WireUi()
     {
 
@@ -85,19 +117,23 @@ public partial class MainForm : Form
     {
         OpenVehicleRegistrationForm(passageId, plateNorm: null);
     }
-    private void OpenVehicleRegistrationForm(long? passageId, string? plateNorm)
+    private async void OpenVehicleRegistrationForm(long? passageId, string? plateNorm)
     {
-        var frm = new VehicleRegistrationForm
+        using var frm = new VehicleRegistrationForm
         {
             StartPosition = FormStartPosition.CenterParent,
             PassageId = passageId,
             PlateNorm = plateNorm,
-            Api = _api
+            Api = _api,
+            IsSuper = _isSuper
         };
 
         frm.ShowDialog(this);
-    }
 
+        await ReloadDashboardAsync();
+
+        ApplyRoleUi();
+    }
 
     private void SetupGrid()
     {
@@ -147,7 +183,7 @@ public partial class MainForm : Form
             Name = "colTime",
             HeaderText = "Время",
             DataPropertyName = "Time",
-            Width = 170
+            Width = 155
         });
 
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
@@ -155,7 +191,8 @@ public partial class MainForm : Form
             Name = "colDir",
             HeaderText = "Напр",
             DataPropertyName = "Direction",
-            Width = 87
+            DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter },
+            Width = 75
         });
 
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
@@ -164,7 +201,7 @@ public partial class MainForm : Form
             HeaderText = "Номер",
             DataPropertyName = "Plate",
             DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter },
-            Width = 100
+            Width = 90
         });
 
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
@@ -172,7 +209,7 @@ public partial class MainForm : Form
             Name = "colBrand",
             HeaderText = "Марка",
             DataPropertyName = "Brand",
-            Width = 180
+            Width = 140
         });
 
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
@@ -188,7 +225,7 @@ public partial class MainForm : Form
             Name = "colNextPay",
             HeaderText = "След.опл.",
             DataPropertyName = "NextPaymentDate",
-            Width = 100
+            Width = 140
         });
 
 
@@ -197,7 +234,7 @@ public partial class MainForm : Form
             Name = "colTariff",
             HeaderText = "Тариф",
             DataPropertyName = "TariffName",
-            Width = 120
+            Width = 140
         });
 
         gridHistory.Columns.Add(new DataGridViewTextBoxColumn
@@ -205,6 +242,7 @@ public partial class MainForm : Form
             Name = "colPlace",
             HeaderText = "Место",
             DataPropertyName = "PlaceNo",
+            DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter },
             Width = 70
         });
 
@@ -219,7 +257,7 @@ public partial class MainForm : Form
 
             if (gridHistory.Columns[e.ColumnIndex].Name == "colNextPay" && e.Value is DateTime dt2)
             {
-                e.Value = dt2.ToString("dd.MM.yyyy");
+                e.Value = dt2.ToString("dd.MM.yyyy HH:mm");
                 e.FormattingApplied = true;
             }
 
@@ -335,8 +373,7 @@ public partial class MainForm : Form
 
         lblShift.Text = $"{dto.Shift.DayOfYear}";
 
-        lblOperatorName.Text = dto.Operator.FullName;
-
+     //   lblOperatorName.Text = _login?.RoleName ?? dto.Operator.FullName;
         lblData.Text = DateTime.Now.ToString("dd.MM.yyyy");
         lblTime.Text = DateTime.Now.ToString("HH:mm");
 

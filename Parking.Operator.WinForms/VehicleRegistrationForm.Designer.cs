@@ -314,7 +314,7 @@
             label8.AutoSize = true;
             label8.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label8.ForeColor = Color.Brown;
-            label8.Location = new Point(755, 603);
+            label8.Location = new Point(730, 603);
             label8.Name = "label8";
             label8.Size = new Size(68, 20);
             label8.TabIndex = 16;
@@ -336,9 +336,9 @@
             cbStatus.Anchor = AnchorStyles.Left;
             cbStatus.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             cbStatus.FormattingEnabled = true;
-            cbStatus.Location = new Point(830, 595);
+            cbStatus.Location = new Point(805, 595);
             cbStatus.Name = "cbStatus";
-            cbStatus.Size = new Size(143, 33);
+            cbStatus.Size = new Size(168, 33);
             cbStatus.TabIndex = 18;
             // 
             // lbDebt
@@ -357,7 +357,7 @@
             label10.AutoSize = true;
             label10.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label10.ForeColor = Color.Brown;
-            label10.Location = new Point(758, 659);
+            label10.Location = new Point(733, 659);
             label10.Name = "label10";
             label10.Size = new Size(65, 20);
             label10.TabIndex = 20;
@@ -368,9 +368,9 @@
             cbTariff.Anchor = AnchorStyles.Left;
             cbTariff.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             cbTariff.FormattingEnabled = true;
-            cbTariff.Location = new Point(830, 652);
+            cbTariff.Location = new Point(805, 652);
             cbTariff.Name = "cbTariff";
-            cbTariff.Size = new Size(143, 33);
+            cbTariff.Size = new Size(168, 33);
             cbTariff.TabIndex = 24;
             // 
             // btnAddStatus
