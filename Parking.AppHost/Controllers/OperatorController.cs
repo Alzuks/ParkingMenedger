@@ -45,30 +45,19 @@ public sealed class OperatorController : ControllerBase
 
         if (search != null)
         {
-            var like = $"%{search}%";
+            var s = search.Trim().ToUpperInvariant();
+            var like = $"%{s}%";
 
-            var platesByVehicleOrOwner = _db.Vehicles.AsNoTracking()
+            var platesByVehicle = _db.Vehicles.AsNoTracking()
                 .Where(v =>
                     EF.Functions.ILike(v.PlateNorm, like) ||
-                    (v.PlateRaw != null && EF.Functions.ILike(v.PlateRaw, like)) ||
-                    (v.Brand != null && EF.Functions.ILike(v.Brand, like)) ||
-                    (v.Model != null && EF.Functions.ILike(v.Model, like)) ||
-                    v.VehicleOwners.Any(vo =>
-                        EF.Functions.ILike(vo.Owner.Surname, like) ||
-                        EF.Functions.ILike(vo.Owner.FirstName, like) ||
-                        (vo.Owner.LastName != null && EF.Functions.ILike(vo.Owner.LastName, like)) ||
-                        (vo.Owner.Phone != null && EF.Functions.ILike(vo.Owner.Phone, like))) ||
-                    v.ContractVehicles.Any(cv =>
-                        EF.Functions.ILike(cv.Contract.CustomerOwner.Surname, like) ||
-                        EF.Functions.ILike(cv.Contract.CustomerOwner.FirstName, like) ||
-                        (cv.Contract.CustomerOwner.LastName != null && EF.Functions.ILike(cv.Contract.CustomerOwner.LastName, like)) ||
-                        (cv.Contract.CustomerOwner.Phone != null && EF.Functions.ILike(cv.Contract.CustomerOwner.Phone, like))))
+                    (v.PlateRaw != null && EF.Functions.ILike(v.PlateRaw, like)))
                 .Select(v => v.PlateNorm);
 
             passageQuery = passageQuery.Where(p =>
                 EF.Functions.ILike(p.PlateNorm, like) ||
                 EF.Functions.ILike(p.PlateRaw, like) ||
-                platesByVehicleOrOwner.Contains(p.PlateNorm));
+                platesByVehicle.Contains(p.PlateNorm));
         }
 
         var passageRows = await passageQuery
