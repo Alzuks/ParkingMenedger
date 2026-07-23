@@ -76,30 +76,26 @@ public sealed class OperatorController : ControllerBase
             .Distinct()
             .ToList();
 
-        var infoByPlate = new Dictionary<string, PlateDashboardInfo>();
-        foreach (var plate in plates)
-            infoByPlate[plate] = await LoadPlateInfoAsync(plate, ct);
+        var gridRows = new List<GridRowDto>();
 
-        var gridRows = passageRows
-            .Select(p =>
-            {
-                infoByPlate.TryGetValue(p.PlateNorm, out var info);
+        foreach (var p in passageRows)
+        {
+            var info = await LoadPlateInfoAsync(p.PlateNorm, p.OccurredAt, ct);
 
-                return new GridRowDto(
-                    PassageId: p.Id,
-                    Time: p.OccurredAt.LocalDateTime,
-                    Direction: DirToText(p.Direction),
-                    Plate: p.PlateNorm,
-                    Brand: info?.Brand,
-                    OwnerName: info?.OwnerName,
-                    NextPaymentDate: info?.NextPaymentDate,
-                    TariffName: info?.TariffName,
-                    PlaceNo: info?.PlaceNo,
-                    PhotoUrl: MakePhotoUrl(p.JpegPath),
-                    StateKind: info?.StateKind ?? "none"
-                );
-            })
-            .ToList();
+            gridRows.Add(new GridRowDto(
+                PassageId: p.Id,
+                Time: p.OccurredAt.LocalDateTime,
+                Direction: DirToText(p.Direction),
+                Plate: p.PlateNorm,
+                Brand: info.Brand,
+                OwnerName: info.OwnerName,
+                NextPaymentDate: info.NextPaymentDate,
+                TariffName: info.TariffName,
+                PlaceNo: info.PlaceNo,
+                PhotoUrl: MakePhotoUrl(p.JpegPath),
+                StateKind: info.StateKind
+            ));
+        }
 
         var lastPassages = gridRows
             .Take(5)
@@ -125,7 +121,10 @@ public sealed class OperatorController : ControllerBase
         ));
     }
 
-    private async Task<PlateDashboardInfo> LoadPlateInfoAsync(string plateNorm, CancellationToken ct)
+    private async Task<PlateDashboardInfo> LoadPlateInfoAsync(
+        string plateNorm,
+        DateTimeOffset passageTimeUtc,
+        CancellationToken ct)
     {
         var info = new PlateDashboardInfo();
 
@@ -146,14 +145,10 @@ public sealed class OperatorController : ControllerBase
             .Select(w => w.WatchlistType.Code)
             .FirstOrDefaultAsync(ct);
 
-        var currentPlace = await _db.ContractPlaces.AsNoTracking()
+        var places = await _db.ContractPlaces.AsNoTracking()
             .Include(cp => cp.Contract)
             .Include(cp => cp.Tariff)
             .Where(cp => cp.Contract.ContractVehicles.Any(cv => cv.VehicleId == vehicle.Id))
-            .Where(cp => cp.Contract.Status == "Active" || cp.Contract.Status == "Closed")
-            .OrderByDescending(cp => cp.Contract.Status == "Active")
-            .ThenByDescending(cp => cp.StartAt)
-            .ThenByDescending(cp => cp.PaidUntil)
             .Select(cp => new
             {
                 cp.Status,
@@ -165,24 +160,66 @@ public sealed class OperatorController : ControllerBase
                 ContractStatus = cp.Contract.Status,
                 ContractOwnerSurname = cp.Contract.CustomerOwner.Surname,
                 ContractOwnerFirstName = cp.Contract.CustomerOwner.FirstName,
-                ContractOwnerLastName = cp.Contract.CustomerOwner.LastName
+                ContractOwnerLastName = cp.Contract.CustomerOwner.LastName,
+
+                // Если PaidUntil затёрли при паузе/убытии, для истории берём CoveredTo из платежей.
+                EndAt = cp.PaidUntil ??
+                    _db.Payments
+                        .Where(p => p.ContractId == cp.ContractId && p.PlaceId == cp.PlaceId)
+                        .Max(p => (DateTimeOffset?)p.CoveredTo)
             })
-            .FirstOrDefaultAsync(ct);
+            .ToListAsync(ct);
 
-        if (currentPlace != null)
+        // Последнее место нужно для текущего цвета/состояния карточки.
+        var latestPlace = places
+            .OrderByDescending(x => x.ContractStatus == "Active")
+            .ThenByDescending(x => x.StartAt)
+            .ThenByDescending(x => x.PaidUntil)
+            .FirstOrDefault();
+
+        // А место/тариф в строке грида должны соответствовать именно времени проезда.
+        // Поэтому для старых Closed-договоров место будет видно только внутри оплаченного периода.
+        var placeForPassage = places
+            .Where(x => x.StartAt <= passageTimeUtc)
+            .Where(x =>
+                x.EndAt.HasValue
+                    ? passageTimeUtc <= x.EndAt.Value
+                    : x.ContractStatus == "Active" && (x.Status == "Active" || x.Status == "Paused"))
+            .OrderByDescending(x => x.StartAt)
+            .FirstOrDefault();
+
+        if (placeForPassage != null)
         {
-            info.PlaceNo = currentPlace.ContractStatus == "Active" ? currentPlace.PlaceNo : null;
-            info.TariffName = currentPlace.TariffName;
-            info.NextPaymentDate =
-                currentPlace.ContractStatus == "Active" && currentPlace.Status == "Active"
-                    ? currentPlace.PaidUntil?.LocalDateTime
-                    : null;
-            info.OwnerName = JoinParts(
-                currentPlace.ContractOwnerSurname,
-                currentPlace.ContractOwnerFirstName,
-                currentPlace.ContractOwnerLastName);
+            info.PlaceNo = placeForPassage.PlaceNo;
+            info.TariffName = placeForPassage.TariffName;
 
-            info.StateKind = GetStateKind(watch, currentPlace.Status, currentPlace.PaidUntil, currentPlace.Grace);
+            info.OwnerName = JoinParts(
+                placeForPassage.ContractOwnerSurname,
+                placeForPassage.ContractOwnerFirstName,
+                placeForPassage.ContractOwnerLastName);
+
+            info.NextPaymentDate =
+                placeForPassage.ContractStatus == "Active" && placeForPassage.Status == "Active"
+                    ? placeForPassage.PaidUntil?.LocalDateTime
+                    : null;
+        }
+        else if (latestPlace != null)
+        {
+            // Для строки вне оплаченного периода место не показываем.
+            // Тариф тоже не тянем, иначе выглядит так, будто старое место всё ещё занято.
+            info.OwnerName = JoinParts(
+                latestPlace.ContractOwnerSurname,
+                latestPlace.ContractOwnerFirstName,
+                latestPlace.ContractOwnerLastName);
+        }
+
+        if (latestPlace != null)
+        {
+            info.StateKind = GetStateKind(
+                watch,
+                latestPlace.Status,
+                latestPlace.PaidUntil,
+                latestPlace.Grace);
         }
         else
         {

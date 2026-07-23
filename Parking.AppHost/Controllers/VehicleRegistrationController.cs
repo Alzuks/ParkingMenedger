@@ -114,7 +114,6 @@ public sealed class VehicleRegistrationController : ControllerBase
             .FirstOrDefaultAsync(v => v.PlateNorm == plateNorm && v.IsActive, ct);
 
         string? watchCode = null;
-        string? currentActivePlaceNo = null;
 
         if (vehicle == null)
         {
@@ -161,7 +160,6 @@ public sealed class VehicleRegistrationController : ControllerBase
                 ctx.ActiveContractId = activePlace.ContractId;
                 ctx.SelectedTariffId = activePlace.TariffId;
                 ctx.PlaceNo = activePlace.Place.PlaceNo;
-                currentActivePlaceNo = activePlace.Place.PlaceNo;
                 ctx.PlaceReadOnly = true;
 
                 ctx.PaidUntil = activePlace.PaidUntil;
@@ -236,8 +234,7 @@ public sealed class VehicleRegistrationController : ControllerBase
 
         // История мест по машине.
         // Берём ВСЕ contract_places: Active, Paused, Closed.
-        // Если сейчас есть активное место — показываем его в гриде как текущую привязку.
-        // Если активного места нет — показываем место только внутри старого оплаченного периода.
+        // PaidUntil не используем для привязки проездов, потому что при паузе/убытии мы его чистим.
         var placeHistory = vehicle == null
             ? new List<PlaceHistoryItem>()
             : await _db.ContractPlaces.AsNoTracking()
@@ -246,18 +243,14 @@ public sealed class VehicleRegistrationController : ControllerBase
                 .Select(cp => new PlaceHistoryItem
                 {
                     PlaceNo = cp.Place.PlaceNo,
-                    StartAt = cp.StartAt,
-                    EndAt = cp.PaidUntil ??
-                        _db.Payments
-                            .Where(p => p.ContractId == cp.ContractId && p.PlaceId == cp.PlaceId)
-                            .Max(p => (DateTimeOffset?)p.CoveredTo)
+                    StartAt = cp.StartAt
                 })
                 .ToListAsync(ct);
 
         ctx.Passages = passages
             .Select(p => MapPassage(
                 p,
-                FindPlaceNoForPassage(p.OccurredAt, placeHistory, currentActivePlaceNo)))
+                FindPlaceNoForPassage(p.OccurredAt, placeHistory)))
             .ToList();
 
         ctx.SelectedPassage = selected != null
@@ -271,33 +264,32 @@ public sealed class VehicleRegistrationController : ControllerBase
     {
         public string? PlaceNo { get; set; }
         public DateTimeOffset StartAt { get; set; }
-        public DateTimeOffset? EndAt { get; set; }
     }
 
     private static string? FindPlaceNoForPassage(
         DateTimeOffset occurredAt,
-        List<PlaceHistoryItem> history,
-        string? currentActivePlaceNo)
+        List<PlaceHistoryItem> history)
     {
-        // Если машина сейчас активна/на паузе и за ней есть текущее место —
-        // в карточке показываем эту текущую привязку.
-        // Это не мешает освобождению места после Closed, потому что currentActivePlaceNo
-        // заполняется только из Contract.Status=Active и ContractPlace.Status=Active/Paused.
-        if (!string.IsNullOrWhiteSpace(currentActivePlaceNo))
-            return currentActivePlaceNo;
-
         if (history.Count == 0)
             return null;
 
-        // Если активного договора уже нет, показываем только историческое место,
-        // когда сам проезд попал внутрь оплаченного периода.
-        var item = history
+        // Нормальный случай:
+        // берём последнее известное место, которое уже началось на момент проезда.
+        var beforeOrCurrent = history
             .Where(x => x.StartAt <= occurredAt)
-            .Where(x => x.EndAt.HasValue && occurredAt <= x.EndAt.Value)
             .OrderByDescending(x => x.StartAt)
             .FirstOrDefault();
 
-        return item?.PlaceNo;
+        if (beforeOrCurrent != null)
+            return beforeOrCurrent.PlaceNo;
+
+        // Страховка для первого оформления:
+        // бывает, что проезд снят камерой чуть раньше, чем оператор создал оплату/контракт.
+        // Тогда не оставляем колонку пустой, а показываем первое место из истории машины.
+        return history
+            .OrderBy(x => x.StartAt)
+            .Select(x => x.PlaceNo)
+            .FirstOrDefault();
     }
 
     [HttpPost("save")]
