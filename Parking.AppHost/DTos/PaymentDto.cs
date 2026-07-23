@@ -9,18 +9,20 @@ public sealed class PaymentContextDto
     public decimal UnitPrice { get; set; }
     public decimal TotalAmount { get; set; }
 
-    // Сотрудник по умолчанию:
-    // если есть смена — сотрудник смены,
-    // если смены нет — первый активный сотрудник из списка
+    // Дата старта периода, которую форма должна показать в payDate/payTime.
+    // Названия на форме не меняем, но смысл такой: contract_places.start_at.
+    public DateTimeOffset SuggestedStartAt { get; set; }
+    public DateTimeOffset? CoveredTo { get; set; }
+    public int ExtraDays { get; set; }
+
+    public bool IsContinuation { get; set; }
+    public bool IsTariffChange { get; set; }
+    public bool IsPlaceChange { get; set; }
+
     public long EmployeeId { get; set; }
     public string EmployeeName { get; set; } = "";
-
-    // Смену форма НЕ выбирает.
-    // Сервер сам находит смену по PaidAt + EmployeeId.
-    // Для старой статистики может быть null.
     public long? ShiftId { get; set; }
 
-    // Оставляем. Для автоподстановки старого/текущего места.
     public long? DefaultPlaceId { get; set; }
 
     public List<PaymentEmployeeItemDto> Employees { get; set; } = new();
@@ -49,18 +51,13 @@ public sealed class PaymentCreateDto
     public long TariffId { get; set; }
     public long PlaceId { get; set; }
 
-    // Выбирается в форме.
-    // Для оператора позже будет заблокировано авторизацией.
-    // Для тебя сейчас можно выбирать вручную для старой статистики.
     public long EmployeeId { get; set; }
 
+    // ВАЖНО: поле оставляем как есть, но из формы сюда приходит дата/время START_AT,
+    // а не фактическая дата оплаты. Фактический payment.paid_at сервер ставит сам.
     public DateTimeOffset PaidAt { get; set; }
 
-    // В форме вводим количество.
-    // В БД отдельно не пишем, сервер сам считает CoveredFrom/CoveredTo.
     public int PeriodCount { get; set; }
-
-    // Если пусто — сервер поставит Normal.
     public string? StatusCode { get; set; }
 }
 

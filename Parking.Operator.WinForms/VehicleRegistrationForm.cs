@@ -32,9 +32,6 @@ namespace Parking.Operator.WinForms
 
             SetupPhotoViewer();
 
-            // по умолчанию всё залочено
-            ApplyViewMode();
-
             // гриды
             SetupPassagesGrid();
             SetupPaymentsGrid();
@@ -43,10 +40,7 @@ namespace Parking.Operator.WinForms
             KeyDown += (_, e) =>
             {
                 if (e.KeyCode == Keys.Escape)
-                {
-                    if (_editMode) ApplyViewMode();
-                    else Close();
-                }
+                    Close();
             };
 
             // события
@@ -58,12 +52,34 @@ namespace Parking.Operator.WinForms
             btnAddOwner.Click += async (_, __) => await AddOrEditOwnerAsync();
             dataGridView1.SelectionChanged += (_, __) => OnSelectedPassageChanged();
 
-            btnEdit.Click += (_, __) => EnterEditMode();
-            btnSave.Click += async (_, __) => await SaveAsync();
+            btnEdit.Visible = false;
+            btnSave.Click += async (_, __) => await SaveAsync(reloadAfterSave: true);
 
-            btnPlay.Click += (_, __) => OpenPaymentDialog();
+            btnPlay.Click += async (_, __) =>
+            {
+                // Важно: перед оплатой сохраняем номер/владельца/машину,
+                // но НЕ перезагружаем форму, иначе выбранный тариф сбрасывается
+                // на тот, который сейчас записан в активном договоре.
+                if (await SaveAsync(reloadAfterSave: false))
+                    OpenPaymentDialog(forceChangePlace: false);
+            };
+
+            btnChangePlace.Click += async (_, __) =>
+            {
+                // То же самое: не перезагружаем форму перед открытием оплаты,
+                // чтобы не потерять выбранный новый тариф.
+                if (await SaveAsync(reloadAfterSave: false))
+                    OpenPaymentDialog(forceChangePlace: true);
+            };
+
+            btnClearOwner.Click += async (_, __) => await ClearOwnerAsync();
+            btnDepart.Click += async (_, __) => await DepartAsync();
+            btnPause.Click += async (_, __) => await PauseToggleAsync();
+
             btnAddTariff.Click += async (_, __) => await AddTariffAsync();
             btnAddStatus.Click += async (_, __) => await AddStatusAsync();
+            cbTariff.SelectedValueChanged += (_, __) => UpdateActionButtons();
+            cbStatus.SelectedValueChanged += (_, __) => UpdateActionButtons();
 
             // направление руками
             cbDirection.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -91,14 +107,34 @@ namespace Parking.Operator.WinForms
 
                 RefreshOwnerLabels();
                 UpdateOwnerButtonMode();
+                ApplyRoleUi();
             };
         }
 
         private void ApplyRoleUi()
         {
+            var owner = GetSelectedOwner();
+            var hasOwner = owner != null;
+
+            btnAddStatus.Visible = IsSuper;
             btnAddStatus.Enabled = IsSuper;
+
+            btnAddTariff.Visible = IsSuper;
             btnAddTariff.Enabled = IsSuper;
+
+            // "+" доступен всем, "/" редактирования владельца — только админу/суперу.
+            btnAddOwner.Visible = !hasOwner || IsSuper;
+            btnAddOwner.Enabled = !hasOwner || IsSuper;
+
+            btnClearOwner.Visible = IsSuper && hasOwner;
+            btnClearOwner.Enabled = IsSuper && hasOwner;
+
+            // Если владелец уже заполнен, оператор не может выбрать другого.
+            cbOwnerSurname.Enabled = IsSuper || !hasOwner;
+
+            cbStatus.Enabled = IsSuper;
         }
+
         //  GRIDS 
 
 
@@ -381,6 +417,8 @@ namespace Parking.Operator.WinForms
             if (dataGridView1.Rows.Count > 0)
                 dataGridView1.Rows[0].Selected = true;
 
+            ApplyViewMode();
+
             // если no_plate — сразу в режим редактирования номера (но не всего)
             if (_ctx.VehicleExists == false && string.IsNullOrWhiteSpace(_ctx.PlateNorm))
             {
@@ -394,7 +432,7 @@ namespace Parking.Operator.WinForms
             foreach (var p in ctx.KnownPlates)
                 cbPlate.Items.Add(p);
 
-            cbTariff.DisplayMember = nameof(TariffItemDto.Name);
+            cbTariff.DisplayMember = nameof(TariffItemDto.DisplayName);
             cbTariff.ValueMember = nameof(TariffItemDto.Id);
             cbTariff.DataSource = ctx.Tariffs;
 
@@ -424,7 +462,6 @@ namespace Parking.Operator.WinForms
             tbColor.Text = ctx.Color ?? "";
             tbYear.Text = ctx.Year?.ToString() ?? "";
 
-            lbDebt.Text = ctx.Debt.ToString("0.00");
             lblState.Text = ctx.StateLabel ?? "";
 
             //  редактировать ТОЛЬКО если нашли контрактную связку
@@ -475,9 +512,16 @@ namespace Parking.Operator.WinForms
             if (ctx.SelectedTariffId.HasValue)
                 cbTariff.SelectedValue = ctx.SelectedTariffId.Value;
 
+            tbPaidUntil.Text = ctx.PaidUntil?.LocalDateTime.ToString("dd.MM.yyyy HH:mm") ?? "";
+            tbRemainingPeriod.Text = ctx.RemainingPeriod ?? "";
+
             // направление выбранного проезда
             if (ctx.SelectedPassage != null)
                 cbDirection.SelectedItem = ctx.SelectedPassage.Direction == "IN" ? "Заехал" : "Выехал";
+
+            ApplyStateColor(ctx.StateKind);
+            UpdateActionButtons();
+            ApplyRoleUi();
 
             _ = LoadPhotoAsync(ctx.SelectedPassage?.PhotoUrl);
         }
@@ -572,7 +616,7 @@ namespace Parking.Operator.WinForms
                 _ctx.Tariffs.Add(item);
 
                 cbTariff.DataSource = null;
-                cbTariff.DisplayMember = nameof(TariffItemDto.Name);
+                cbTariff.DisplayMember = nameof(TariffItemDto.DisplayName);
                 cbTariff.ValueMember = nameof(TariffItemDto.Id);
                 cbTariff.DataSource = _ctx.Tariffs;
 
@@ -753,92 +797,90 @@ namespace Parking.Operator.WinForms
 
 
 
-        //  MODES 
+        //  MODES
 
         private void ApplyViewMode()
         {
-            _editMode = false;
+            _editMode = true;
 
             dataGridView1.Enabled = true;
 
-            tbPhone.ReadOnly = true;
-            tbBrand.ReadOnly = true;
-            tbModel.ReadOnly = true;
-            tbColor.ReadOnly = true;
-            tbYear.ReadOnly = true;
+            tbPhone.ReadOnly = false;
+            tbBrand.ReadOnly = false;
+            tbModel.ReadOnly = false;
+            tbColor.ReadOnly = false;
+            tbYear.ReadOnly = false;
+            tbSpot.ReadOnly = true;
 
-            // tbSpot readonly управляется контекстом (контракт найден или нет)
-
-            cbPlate.Enabled = false;
-            cbDirection.Enabled = false;
-            cbStatus.Enabled = false;
-            cbOwnerSurname.Enabled = false;
-
-            // Тариф по ТЗ всегда активен
+            cbPlate.Enabled = true;
+            cbDirection.Enabled = true;
             cbTariff.Enabled = true;
+            cbOwnerSurname.Enabled = true;
 
-            btnEdit.Enabled = true;
-            btnSave.Enabled = false;
+            btnEdit.Visible = false;
+            btnSave.Enabled = true;
 
-            btnAddOwner.Visible = false;
-            btnAddStatus.Visible = false;
-            btnAddTariff.Visible = false;
+            ApplyRoleUi();
+            UpdateActionButtons();
         }
 
         private void EnterEditMode(bool onlyPlate = false)
         {
-            _editMode = true;
+            ApplyViewMode();
+        }
 
-            dataGridView1.Enabled = false;
+        private void UpdateActionButtons()
+        {
+            var hasTariff = cbTariff.SelectedValue is long;
+            var hasPlate = !string.IsNullOrWhiteSpace(cbPlate.Text);
+            var hasActiveContract = _ctx?.ActiveContractId.HasValue == true;
 
-            cbPlate.Enabled = true;
-            cbDirection.Enabled = true;
+            btnPlay.Visible = hasTariff && hasPlate;
+            btnChangePlace.Visible = hasTariff && hasPlate && hasActiveContract;
+            btnDepart.Visible = hasTariff && hasPlate && hasActiveContract;
+            btnPause.Visible = hasTariff && hasPlate && hasActiveContract;
 
-            if (_ctx != null)
-                tbSpot.ReadOnly = !_ctx.CanEditPlace;
+            btnPause.Text = string.Equals(_ctx?.StateKind, "grace", StringComparison.OrdinalIgnoreCase) &&
+                            (_ctx?.StateLabel ?? "").Contains("Пауза", StringComparison.OrdinalIgnoreCase)
+                ? "Возврат"
+                : "Пауза";
+        }
 
-            if (!onlyPlate)
+        private void ApplyStateColor(string? stateKind)
+        {
+            var color = stateKind switch
             {
-                tbPhone.ReadOnly = false;
-                tbBrand.ReadOnly = false;
-                tbModel.ReadOnly = false;
-                tbColor.ReadOnly = false;
-                tbYear.ReadOnly = false;
+                "none" => Color.White,
+                "active" => Color.LimeGreen,
+                "grace" => Color.Yellow,
+                "closed" => Color.Gray,
+                "paused" => Color.Yellow,
+                _ => Color.White
+            };
 
-                // тариф активен всегда
-                cbTariff.Enabled = true;
-
-                cbStatus.Enabled = true;
-                cbOwnerSurname.Enabled = true;
-
-                btnAddOwner.Visible = true;
-                btnAddStatus.Visible = true;
-                btnAddTariff.Visible = true;
-                UpdateOwnerButtonMode();
-            }
-
-            btnEdit.Enabled = false;
-            btnSave.Enabled = true;
+            lblState.BackColor = color;
+            tbPaidUntil.ForeColor = color == Color.White ? Color.Black : color;
+            tbRemainingPeriod.ForeColor = color == Color.White ? Color.Black : color;
         }
 
         //  SAVE
 
-        private async Task SaveAsync()
+        private async Task<bool> SaveAsync(bool reloadAfterSave = true)
         {
             if (Api == null || _ctx == null)
-                return;
+                return false;
 
             var plate = (cbPlate.Text ?? "").Trim();
             if (string.IsNullOrWhiteSpace(plate))
             {
                 MessageBox.Show("Введите номер.");
-                return;
+                return false;
             }
 
             if (_ctx.SelectedPassage == null)
             {
                 MessageBox.Show("Не выбран проезд.");
-                return;
+                return false;
             }
 
             var dirText = cbDirection.SelectedItem?.ToString() ?? "Заехал";
@@ -878,21 +920,27 @@ namespace Parking.Operator.WinForms
             catch (ApiException ex)
             {
                 MessageBox.Show(ex.Body ?? ex.Message, "Ошибка API");
-                return;
+                return false;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Ошибка");
-                return;
+                return false;
             }
 
             PlateNorm = plate;
-            await LoadAllAsync();
-            ApplyViewMode();
+
+            if (reloadAfterSave)
+            {
+                await LoadAllAsync();
+                ApplyViewMode();
+            }
+
+            return true;
         }
 
 
-        private void OpenPaymentDialog()
+        private void OpenPaymentDialog(bool forceChangePlace)
         {
             if (Api == null || _ctx == null)
                 return;
@@ -921,7 +969,8 @@ namespace Parking.Operator.WinForms
                 ownerId,
                 tariffId,
                 statusCode,
-                canSelectEmployee: IsSuper) // сейчас ты/админ. Для оператора потом false.
+                canSelectEmployee: IsSuper,
+                forceChangePlace: forceChangePlace)
             {
                 StartPosition = FormStartPosition.CenterParent
             };
@@ -932,5 +981,81 @@ namespace Parking.Operator.WinForms
             _ = LoadAllAsync();
         }
 
+
+        private async Task ClearOwnerAsync()
+        {
+            if (Api == null) return;
+
+            var plate = (cbPlate.Text ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(plate)) return;
+
+            try
+            {
+                await Api.ClearVehicleOwnerAsync(plate, CancellationToken.None);
+                cbOwnerSurname.SelectedIndex = -1;
+                if (_ctx != null) _ctx.SelectedOwnerId = null;
+                RefreshOwnerLabels();
+                UpdateOwnerButtonMode();
+                await LoadAllAsync();
+            }
+            catch (ApiException ex)
+            {
+                MessageBox.Show(string.IsNullOrWhiteSpace(ex.Body) ? ex.Message : ex.Body, "Ошибка API");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка");
+            }
+        }
+
+        private async Task DepartAsync()
+        {
+            if (Api == null) return;
+            var plate = (cbPlate.Text ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(plate)) return;
+
+            if (MessageBox.Show("Закрыть договор и освободить место?", "Убытие", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+
+            try
+            {
+                await Api.DepartVehicleAsync(plate, CancellationToken.None);
+                await LoadAllAsync();
+            }
+            catch (ApiException ex)
+            {
+                MessageBox.Show(string.IsNullOrWhiteSpace(ex.Body) ? ex.Message : ex.Body, "Ошибка API");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка");
+            }
+        }
+
+        private async Task PauseToggleAsync()
+        {
+            if (Api == null) return;
+            var plate = (cbPlate.Text ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(plate)) return;
+
+            try
+            {
+                await Api.PauseToggleVehicleAsync(plate, CancellationToken.None);
+                await LoadAllAsync();
+            }
+            catch (ApiException ex)
+            {
+                MessageBox.Show(string.IsNullOrWhiteSpace(ex.Body) ? ex.Message : ex.Body, "Ошибка API");
+                await LoadAllAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка");
+            }
+        }
+        private void VehicleRegistrationForm_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

@@ -41,12 +41,16 @@ public partial class CarCardControl : UserControl
         if (dto.Debt > 0)
             lblDebt.Text = $"ДОЛГ: {dto.Debt:0.00}";
 
-        // Цвет рамки по статусу
-        pnlBorder.BackColor =
-            dto.IsVip ? Color.Gold :
-            dto.Debt > 0 ? Color.Red :
-            dto.IsExpiring ? Color.YellowGreen :
-            Color.LimeGreen;
+        // Цвет рамки по статусу: нет watchlist -> белый, active -> зелёный, grace/pause -> жёлтый, closed -> серый
+        pnlBorder.BackColor = dto.StateKind switch
+        {
+            "none" => Color.White,
+            "active" => Color.LimeGreen,
+            "grace" => Color.Yellow,
+            "closed" => Color.Gray,
+            "paused" => Color.Yellow,
+            _ => Color.White
+        };
 
         // Фото пока не грузим тут — это будет отдельный метод SetImage
         // pbPhoto.Image = ...

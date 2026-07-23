@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Parking.AppHost.DTOs;
 using Parking.Infrastructure.Persistence;
+using Parking.Infrastructure.Persistence.Entities;
 
 namespace Parking.AppHost.Controllers;
 
@@ -23,21 +24,24 @@ public sealed class OperatorController : ControllerBase
         [FromQuery] string? search,
         CancellationToken ct)
     {
+        await CloseExpiredContractsAsync(DateTimeOffset.UtcNow, ct);
+
         search = string.IsNullOrWhiteSpace(search) ? null : search.Trim();
 
         var totalPlaces = await _db.Places.CountAsync(p => p.IsActive, ct);
-
         if (totalPlaces <= 0)
             totalPlaces = _cfg.GetValue<int?>("Parking:TotalPlaces") ?? 170;
 
+        var nowUtc = DateTimeOffset.UtcNow;
         var usedPlaces = await _db.ContractPlaces.AsNoTracking()
-            .Where(cp => cp.Status != "Closed")
+            .Where(cp => cp.Contract.Status == "Active")
+            .Where(cp => cp.Status == "Active")
+            .Where(cp => cp.PaidUntil == null || cp.PaidUntil > nowUtc)
             .Select(cp => cp.PlaceId)
             .Distinct()
             .CountAsync(ct);
 
         var now = DateTime.Now;
-
         var shiftDto = new ShiftDto(now.DayOfYear);
         var operatorDto = new OperatorDto("Оператор", null);
 
@@ -48,16 +52,9 @@ public sealed class OperatorController : ControllerBase
             var s = search.Trim().ToUpperInvariant();
             var like = $"%{s}%";
 
-            var platesByVehicle = _db.Vehicles.AsNoTracking()
-                .Where(v =>
-                    EF.Functions.ILike(v.PlateNorm, like) ||
-                    (v.PlateRaw != null && EF.Functions.ILike(v.PlateRaw, like)))
-                .Select(v => v.PlateNorm);
-
             passageQuery = passageQuery.Where(p =>
                 EF.Functions.ILike(p.PlateNorm, like) ||
-                EF.Functions.ILike(p.PlateRaw, like) ||
-                platesByVehicle.Contains(p.PlateNorm));
+                EF.Functions.ILike(p.PlateRaw, like));
         }
 
         var passageRows = await passageQuery
@@ -80,11 +77,8 @@ public sealed class OperatorController : ControllerBase
             .ToList();
 
         var infoByPlate = new Dictionary<string, PlateDashboardInfo>();
-
         foreach (var plate in plates)
-        {
             infoByPlate[plate] = await LoadPlateInfoAsync(plate, ct);
-        }
 
         var gridRows = passageRows
             .Select(p =>
@@ -101,7 +95,8 @@ public sealed class OperatorController : ControllerBase
                     NextPaymentDate: info?.NextPaymentDate,
                     TariffName: info?.TariffName,
                     PlaceNo: info?.PlaceNo,
-                    PhotoUrl: MakePhotoUrl(p.JpegPath)
+                    PhotoUrl: MakePhotoUrl(p.JpegPath),
+                    StateKind: info?.StateKind ?? "none"
                 );
             })
             .ToList();
@@ -116,7 +111,8 @@ public sealed class OperatorController : ControllerBase
                 Debt: 0m,
                 IsVip: false,
                 IsExpiring: IsExpiringSoon(r.NextPaymentDate),
-                PhotoUrl: r.PhotoUrl
+                PhotoUrl: r.PhotoUrl,
+                StateKind: r.StateKind
             ))
             .ToList();
 
@@ -129,20 +125,13 @@ public sealed class OperatorController : ControllerBase
         ));
     }
 
-    private async Task<PlateDashboardInfo> LoadPlateInfoAsync(
-        string plateNorm,
-        CancellationToken ct)
+    private async Task<PlateDashboardInfo> LoadPlateInfoAsync(string plateNorm, CancellationToken ct)
     {
         var info = new PlateDashboardInfo();
 
         var vehicle = await _db.Vehicles.AsNoTracking()
             .Where(v => v.PlateNorm == plateNorm && v.IsActive)
-            .Select(v => new
-            {
-                v.Id,
-                v.Brand,
-                v.Model
-            })
+            .Select(v => new { v.Id, v.Brand, v.Model })
             .FirstOrDefaultAsync(ct);
 
         if (vehicle == null)
@@ -150,43 +139,60 @@ public sealed class OperatorController : ControllerBase
 
         info.Brand = JoinParts(vehicle.Brand, vehicle.Model);
 
-        var activePlace = await _db.ContractPlaces.AsNoTracking()
+        var watch = await _db.Watchlist.AsNoTracking()
+            .Include(w => w.WatchlistType)
+            .Where(w => w.PlateNorm == plateNorm && w.IsActive)
+            .OrderByDescending(w => w.Id)
+            .Select(w => w.WatchlistType.Code)
+            .FirstOrDefaultAsync(ct);
+
+        var currentPlace = await _db.ContractPlaces.AsNoTracking()
+            .Include(cp => cp.Contract)
+            .Include(cp => cp.Tariff)
             .Where(cp => cp.Contract.ContractVehicles.Any(cv => cv.VehicleId == vehicle.Id))
-            .Where(cp => cp.Status != "Closed")
-            .OrderByDescending(cp => cp.PaidUntil ?? cp.StartAt)
+            .Where(cp => cp.Contract.Status == "Active" || cp.Contract.Status == "Closed")
+            .OrderByDescending(cp => cp.Contract.Status == "Active")
             .ThenByDescending(cp => cp.StartAt)
+            .ThenByDescending(cp => cp.PaidUntil)
             .Select(cp => new
             {
+                cp.Status,
+                cp.PaidUntil,
+                cp.StartAt,
                 PlaceNo = cp.Place.PlaceNo,
                 TariffName = cp.Tariff.Name,
-                PaidUntil = cp.PaidUntil,
-
+                Grace = cp.Tariff.GracePeriodDays,
+                ContractStatus = cp.Contract.Status,
                 ContractOwnerSurname = cp.Contract.CustomerOwner.Surname,
                 ContractOwnerFirstName = cp.Contract.CustomerOwner.FirstName,
                 ContractOwnerLastName = cp.Contract.CustomerOwner.LastName
             })
             .FirstOrDefaultAsync(ct);
 
-        if (activePlace != null)
+        if (currentPlace != null)
         {
-            info.PlaceNo = activePlace.PlaceNo;
-            info.TariffName = activePlace.TariffName;
-            info.NextPaymentDate = activePlace.PaidUntil?.LocalDateTime;
+            info.PlaceNo = currentPlace.ContractStatus == "Active" ? currentPlace.PlaceNo : null;
+            info.TariffName = currentPlace.TariffName;
+            info.NextPaymentDate =
+                currentPlace.ContractStatus == "Active" && currentPlace.Status == "Active"
+                    ? currentPlace.PaidUntil?.LocalDateTime
+                    : null;
             info.OwnerName = JoinParts(
-                activePlace.ContractOwnerSurname,
-                activePlace.ContractOwnerFirstName,
-                activePlace.ContractOwnerLastName);
+                currentPlace.ContractOwnerSurname,
+                currentPlace.ContractOwnerFirstName,
+                currentPlace.ContractOwnerLastName);
+
+            info.StateKind = GetStateKind(watch, currentPlace.Status, currentPlace.PaidUntil, currentPlace.Grace);
+        }
+        else
+        {
+            info.StateKind = string.IsNullOrWhiteSpace(watch) ? "none" : "closed";
         }
 
         var vehicleOwner = await _db.VehicleOwners.AsNoTracking()
             .Where(vo => vo.VehicleId == vehicle.Id)
             .OrderByDescending(vo => vo.IsPayer)
-            .Select(vo => new
-            {
-                vo.Owner.Surname,
-                vo.Owner.FirstName,
-                vo.Owner.LastName
-            })
+            .Select(vo => new { vo.Owner.Surname, vo.Owner.FirstName, vo.Owner.LastName })
             .FirstOrDefaultAsync(ct);
 
         if (vehicleOwner != null)
@@ -197,38 +203,71 @@ public sealed class OperatorController : ControllerBase
                 vehicleOwner.LastName);
         }
 
-        if (string.IsNullOrWhiteSpace(info.TariffName))
+        return info;
+    }
+
+    private async Task CloseExpiredContractsAsync(DateTimeOffset nowUtc, CancellationToken ct)
+    {
+        var rows = await _db.ContractPlaces
+            .Include(cp => cp.Contract)
+            .Include(cp => cp.Tariff)
+            .Where(cp => cp.Status == "Active" || cp.Status == "Paused")
+            .ToListAsync(ct);
+
+        foreach (var cp in rows)
         {
-            var lastPlace = await _db.ContractPlaces.AsNoTracking()
-                .Where(cp => cp.Contract.ContractVehicles.Any(cv => cv.VehicleId == vehicle.Id))
-                .OrderByDescending(cp => cp.StartAt)
-                .Select(cp => new
-                {
-                    TariffName = cp.Tariff.Name,
-                    PaidUntil = cp.PaidUntil,
-
-                    ContractOwnerSurname = cp.Contract.CustomerOwner.Surname,
-                    ContractOwnerFirstName = cp.Contract.CustomerOwner.FirstName,
-                    ContractOwnerLastName = cp.Contract.CustomerOwner.LastName
-                })
-                .FirstOrDefaultAsync(ct);
-
-            if (lastPlace != null)
+            if (cp.Status == "Paused")
             {
-                info.TariffName = lastPlace.TariffName;
-                info.NextPaymentDate = lastPlace.PaidUntil?.LocalDateTime;
-
-                if (string.IsNullOrWhiteSpace(info.OwnerName))
+                if (cp.PausedAt.HasValue && cp.PausedAt.Value.AddMonths(3) <= nowUtc)
                 {
-                    info.OwnerName = JoinParts(
-                        lastPlace.ContractOwnerSurname,
-                        lastPlace.ContractOwnerFirstName,
-                        lastPlace.ContractOwnerLastName);
+                    cp.Status = "Closed";
+                    cp.Contract.Status = "Closed";
+                    cp.PauseBalanceDays = 0;
+                    cp.PaidUntil = null;
                 }
+
+                continue;
+            }
+
+            if (!cp.PaidUntil.HasValue)
+                continue;
+
+            var closeAt = cp.PaidUntil.Value.AddHours(cp.Tariff.GracePeriodDays);
+            if (closeAt <= nowUtc)
+            {
+                cp.Status = "Closed";
+                cp.Contract.Status = "Closed";
             }
         }
 
-        return info;
+        await _db.SaveChangesAsync(ct);
+    }
+
+    private static string GetStateKind(string? watchCode, string? status, DateTimeOffset? paidUntil, int graceHours)
+    {
+        if (string.IsNullOrWhiteSpace(watchCode))
+            return "none";
+
+        if (!string.Equals(watchCode, "Normal", StringComparison.OrdinalIgnoreCase))
+            return "active";
+
+        if (string.Equals(status, "Paused", StringComparison.OrdinalIgnoreCase))
+            return "grace";
+
+        if (string.Equals(status, "Closed", StringComparison.OrdinalIgnoreCase))
+            return "closed";
+
+        if (!paidUntil.HasValue)
+            return "active";
+
+        var now = DateTimeOffset.UtcNow;
+        if (paidUntil.Value > now)
+            return "active";
+
+        if (paidUntil.Value.AddHours(graceHours) > now)
+            return "grace";
+
+        return "closed";
     }
 
     private static string DirToText(byte dir) => dir switch
@@ -243,8 +282,7 @@ public sealed class OperatorController : ControllerBase
         if (string.IsNullOrWhiteSpace(jpegPath))
             return null;
 
-        return "/api/photos/file?name=" +
-               Uri.EscapeDataString(Path.GetFileName(jpegPath));
+        return "/api/photos/file?name=" + Uri.EscapeDataString(Path.GetFileName(jpegPath));
     }
 
     private static string? JoinParts(params string?[] parts)
@@ -262,9 +300,7 @@ public sealed class OperatorController : ControllerBase
             return false;
 
         var now = DateTime.Now;
-
-        return paidUntil.Value >= now &&
-               paidUntil.Value <= now.AddDays(3);
+        return paidUntil.Value >= now && paidUntil.Value <= now.AddDays(3);
     }
 
     private sealed class PlateDashboardInfo
@@ -274,5 +310,6 @@ public sealed class OperatorController : ControllerBase
         public DateTime? NextPaymentDate { get; set; }
         public string? TariffName { get; set; }
         public string? PlaceNo { get; set; }
+        public string StateKind { get; set; } = "none";
     }
 }

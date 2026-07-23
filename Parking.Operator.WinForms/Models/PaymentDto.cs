@@ -9,9 +9,18 @@ public sealed class PaymentContextDto
     public decimal UnitPrice { get; set; }
     public decimal TotalAmount { get; set; }
 
+    // Дата старта периода, которую форма должна показать в payDate/payTime.
+    // Названия на форме не меняем, но смысл такой: contract_places.start_at.
+    public DateTimeOffset SuggestedStartAt { get; set; }
+    public DateTimeOffset? CoveredTo { get; set; }
+    public int ExtraDays { get; set; }
+
+    public bool IsContinuation { get; set; }
+    public bool IsTariffChange { get; set; }
+    public bool IsPlaceChange { get; set; }
+
     public long EmployeeId { get; set; }
     public string EmployeeName { get; set; } = "";
-
     public long? ShiftId { get; set; }
 
     public long? DefaultPlaceId { get; set; }
@@ -44,9 +53,11 @@ public sealed class PaymentCreateDto
 
     public long EmployeeId { get; set; }
 
+    // ВАЖНО: поле оставляем как есть, но из формы сюда приходит дата/время START_AT,
+    // а не фактическая дата оплаты. Фактический payment.paid_at сервер ставит сам.
     public DateTimeOffset PaidAt { get; set; }
-    public int PeriodCount { get; set; }
 
+    public int PeriodCount { get; set; }
     public string? StatusCode { get; set; }
 }
 

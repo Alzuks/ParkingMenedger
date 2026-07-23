@@ -297,6 +297,21 @@ CancellationToken ct)
 
         return await resp.Content.ReadFromJsonAsync<LoginResultDto>(cancellationToken: ct);
     }
+    public async Task ClearVehicleOwnerAsync(string plateNorm, CancellationToken ct = default)
+    {
+        await PostJsonOrThrowAsync("api/vehicle-registration/clear-owner", new PlateActionDto { PlateNorm = plateNorm }, ct);
+    }
+
+    public async Task DepartVehicleAsync(string plateNorm, CancellationToken ct = default)
+    {
+        await PostJsonOrThrowAsync("api/vehicle-registration/depart", new PlateActionDto { PlateNorm = plateNorm }, ct);
+    }
+
+    public async Task PauseToggleVehicleAsync(string plateNorm, CancellationToken ct = default)
+    {
+        await PostJsonOrThrowAsync("api/vehicle-registration/pause-toggle", new PlateActionDto { PlateNorm = plateNorm }, ct);
+    }
+
 }
 
 

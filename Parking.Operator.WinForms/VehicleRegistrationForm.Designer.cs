@@ -32,7 +32,6 @@
             dataGridView1 = new DataGridView();
             lblState = new Label();
             label1 = new Label();
-            label2 = new Label();
             label3 = new Label();
             label4 = new Label();
             label5 = new Label();
@@ -46,12 +45,9 @@
             btnSave = new Button();
             btnPlay = new Button();
             tbSpot = new TextBox();
-            label7 = new Label();
             dgvPayments = new DataGridView();
             label8 = new Label();
-            label9 = new Label();
             cbStatus = new ComboBox();
-            lbDebt = new Label();
             label10 = new Label();
             cbTariff = new ComboBox();
             btnAddStatus = new Button();
@@ -69,6 +65,13 @@
             label18 = new Label();
             tbPhone = new TextBox();
             label13 = new Label();
+            btnChangePlace = new Button();
+            btnClearOwner = new Button();
+            btnDepart = new Button();
+            btnPause = new Button();
+            label2 = new Label();
+            tbPaidUntil = new TextBox();
+            tbRemainingPeriod = new TextBox();
             ((System.ComponentModel.ISupportInitialize)pbPhoto).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             tableLayoutPanel1.SuspendLayout();
@@ -117,17 +120,6 @@
             label1.Size = new Size(52, 20);
             label1.TabIndex = 3;
             label1.Text = "Дата";
-            // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
-            label2.ForeColor = Color.Brown;
-            label2.Location = new Point(189, 604);
-            label2.Name = "label2";
-            label2.Size = new Size(136, 20);
-            label2.TabIndex = 4;
-            label2.Text = "Время стоянки";
             // 
             // label3
             // 
@@ -272,9 +264,9 @@
             // 
             btnPlay.Anchor = AnchorStyles.None;
             btnPlay.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnPlay.Location = new Point(888, 702);
+            btnPlay.Location = new Point(907, 600);
             btnPlay.Name = "btnPlay";
-            btnPlay.Size = new Size(114, 42);
+            btnPlay.Size = new Size(100, 42);
             btnPlay.TabIndex = 13;
             btnPlay.Text = "Оплата";
             btnPlay.UseVisualStyleBackColor = true;
@@ -290,17 +282,6 @@
             tbSpot.Text = " ";
             tbSpot.TextAlign = HorizontalAlignment.Center;
             // 
-            // label7
-            // 
-            label7.Anchor = AnchorStyles.Left;
-            label7.AutoSize = true;
-            label7.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            label7.Location = new Point(331, 604);
-            label7.Name = "label7";
-            label7.Size = new Size(17, 25);
-            label7.TabIndex = 14;
-            label7.Text = " ";
-            // 
             // dgvPayments
             // 
             dgvPayments.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -314,50 +295,28 @@
             label8.AutoSize = true;
             label8.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label8.ForeColor = Color.Brown;
-            label8.Location = new Point(730, 603);
+            label8.Location = new Point(673, 662);
             label8.Name = "label8";
             label8.Size = new Size(68, 20);
             label8.TabIndex = 16;
             label8.Text = "Статус";
-            // 
-            // label9
-            // 
-            label9.AutoSize = true;
-            label9.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
-            label9.ForeColor = Color.Brown;
-            label9.Location = new Point(532, 604);
-            label9.Name = "label9";
-            label9.Size = new Size(51, 20);
-            label9.TabIndex = 17;
-            label9.Text = "Долг";
             // 
             // cbStatus
             // 
             cbStatus.Anchor = AnchorStyles.Left;
             cbStatus.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             cbStatus.FormattingEnabled = true;
-            cbStatus.Location = new Point(805, 595);
+            cbStatus.Location = new Point(747, 653);
             cbStatus.Name = "cbStatus";
-            cbStatus.Size = new Size(168, 33);
+            cbStatus.Size = new Size(115, 33);
             cbStatus.TabIndex = 18;
-            // 
-            // lbDebt
-            // 
-            lbDebt.Anchor = AnchorStyles.Left;
-            lbDebt.AutoSize = true;
-            lbDebt.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            lbDebt.Location = new Point(589, 600);
-            lbDebt.Name = "lbDebt";
-            lbDebt.Size = new Size(23, 25);
-            lbDebt.TabIndex = 19;
-            lbDebt.Text = "0";
             // 
             // label10
             // 
             label10.AutoSize = true;
             label10.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label10.ForeColor = Color.Brown;
-            label10.Location = new Point(733, 659);
+            label10.Location = new Point(577, 613);
             label10.Name = "label10";
             label10.Size = new Size(65, 20);
             label10.TabIndex = 20;
@@ -368,16 +327,16 @@
             cbTariff.Anchor = AnchorStyles.Left;
             cbTariff.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
             cbTariff.FormattingEnabled = true;
-            cbTariff.Location = new Point(805, 652);
+            cbTariff.Location = new Point(645, 606);
             cbTariff.Name = "cbTariff";
-            cbTariff.Size = new Size(168, 33);
+            cbTariff.Size = new Size(217, 33);
             cbTariff.TabIndex = 24;
             // 
             // btnAddStatus
             // 
             btnAddStatus.Anchor = AnchorStyles.None;
             btnAddStatus.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnAddStatus.Location = new Point(979, 596);
+            btnAddStatus.Location = new Point(868, 654);
             btnAddStatus.Name = "btnAddStatus";
             btnAddStatus.Size = new Size(33, 33);
             btnAddStatus.TabIndex = 18;
@@ -389,7 +348,7 @@
             // 
             btnAddTariff.Anchor = AnchorStyles.None;
             btnAddTariff.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            btnAddTariff.Location = new Point(979, 652);
+            btnAddTariff.Location = new Point(868, 606);
             btnAddTariff.Name = "btnAddTariff";
             btnAddTariff.Size = new Size(33, 33);
             btnAddTariff.TabIndex = 28;
@@ -424,7 +383,7 @@
             label14.AutoSize = true;
             label14.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label14.ForeColor = Color.Brown;
-            label14.Location = new Point(624, 660);
+            label14.Location = new Point(545, 662);
             label14.Name = "label14";
             label14.Size = new Size(41, 20);
             label14.TabIndex = 31;
@@ -435,7 +394,7 @@
             label15.AutoSize = true;
             label15.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label15.ForeColor = Color.Brown;
-            label15.Location = new Point(447, 659);
+            label15.Location = new Point(394, 661);
             label15.Name = "label15";
             label15.Size = new Size(52, 20);
             label15.TabIndex = 32;
@@ -446,7 +405,7 @@
             label16.AutoSize = true;
             label16.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label16.ForeColor = Color.Brown;
-            label16.Location = new Point(231, 660);
+            label16.Location = new Point(208, 660);
             label16.Name = "label16";
             label16.Size = new Size(76, 20);
             label16.TabIndex = 33;
@@ -466,28 +425,28 @@
             // tbYear
             // 
             tbYear.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbYear.Location = new Point(668, 652);
+            tbYear.Location = new Point(589, 654);
             tbYear.Name = "tbYear";
             tbYear.ReadOnly = true;
-            tbYear.Size = new Size(59, 33);
+            tbYear.Size = new Size(53, 33);
             tbYear.TabIndex = 35;
             // 
             // tbColor
             // 
             tbColor.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbColor.Location = new Point(501, 652);
+            tbColor.Location = new Point(448, 654);
             tbColor.Name = "tbColor";
             tbColor.ReadOnly = true;
-            tbColor.Size = new Size(113, 33);
+            tbColor.Size = new Size(93, 33);
             tbColor.TabIndex = 36;
             // 
             // tbModel
             // 
             tbModel.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbModel.Location = new Point(307, 652);
+            tbModel.Location = new Point(284, 652);
             tbModel.Name = "tbModel";
             tbModel.ReadOnly = true;
-            tbModel.Size = new Size(134, 33);
+            tbModel.Size = new Size(109, 33);
             tbModel.TabIndex = 37;
             // 
             // tbBrand
@@ -496,7 +455,7 @@
             tbBrand.Location = new Point(74, 653);
             tbBrand.Name = "tbBrand";
             tbBrand.ReadOnly = true;
-            tbBrand.Size = new Size(151, 33);
+            tbBrand.Size = new Size(128, 33);
             tbBrand.TabIndex = 38;
             // 
             // label18
@@ -504,7 +463,7 @@
             label18.AutoSize = true;
             label18.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label18.ForeColor = Color.Brown;
-            label18.Location = new Point(613, 711);
+            label18.Location = new Point(645, 711);
             label18.Name = "label18";
             label18.Size = new Size(86, 20);
             label18.TabIndex = 39;
@@ -513,10 +472,10 @@
             // tbPhone
             // 
             tbPhone.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbPhone.Location = new Point(705, 704);
+            tbPhone.Location = new Point(737, 704);
             tbPhone.Name = "tbPhone";
             tbPhone.ReadOnly = true;
-            tbPhone.Size = new Size(151, 33);
+            tbPhone.Size = new Size(125, 33);
             tbPhone.TabIndex = 40;
             // 
             // label13
@@ -524,17 +483,98 @@
             label13.AutoSize = true;
             label13.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
             label13.ForeColor = Color.Brown;
-            label13.Location = new Point(12, 711);
+            label13.Location = new Point(12, 709);
             label13.Name = "label13";
-            label13.Size = new Size(88, 20);
+            label13.Size = new Size(95, 20);
             label13.TabIndex = 23;
-            label13.Text = "Фамилия";
+            label13.Text = "Владелец";
+            // 
+            // btnChangePlace
+            // 
+            btnChangePlace.Anchor = AnchorStyles.None;
+            btnChangePlace.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            btnChangePlace.Location = new Point(138, 595);
+            btnChangePlace.Name = "btnChangePlace";
+            btnChangePlace.Size = new Size(45, 42);
+            btnChangePlace.TabIndex = 41;
+            btnChangePlace.Text = "[]";
+            btnChangePlace.UseVisualStyleBackColor = true;
+            // 
+            // btnClearOwner
+            // 
+            btnClearOwner.Anchor = AnchorStyles.None;
+            btnClearOwner.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            btnClearOwner.Location = new Point(600, 704);
+            btnClearOwner.Name = "btnClearOwner";
+            btnClearOwner.Size = new Size(33, 33);
+            btnClearOwner.TabIndex = 42;
+            btnClearOwner.Text = "C";
+            btnClearOwner.UseVisualStyleBackColor = true;
+            btnClearOwner.Visible = false;
+            // 
+            // btnDepart
+            // 
+            btnDepart.Anchor = AnchorStyles.None;
+            btnDepart.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            btnDepart.Location = new Point(907, 647);
+            btnDepart.Name = "btnDepart";
+            btnDepart.Size = new Size(100, 42);
+            btnDepart.TabIndex = 43;
+            btnDepart.Text = "Убытие";
+            btnDepart.UseVisualStyleBackColor = true;
+            // 
+            // btnPause
+            // 
+            btnPause.Anchor = AnchorStyles.None;
+            btnPause.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            btnPause.Location = new Point(907, 696);
+            btnPause.Name = "btnPause";
+            btnPause.Size = new Size(100, 42);
+            btnPause.TabIndex = 44;
+            btnPause.Text = "Пауза";
+            btnPause.UseVisualStyleBackColor = true;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
+            label2.ForeColor = Color.Brown;
+            label2.Location = new Point(198, 608);
+            label2.Name = "label2";
+            label2.Size = new Size(107, 20);
+            label2.TabIndex = 45;
+            label2.Text = "Активен до";
+            // 
+            // tbPaidUntil
+            // 
+            tbPaidUntil.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            tbPaidUntil.Location = new Point(311, 601);
+            tbPaidUntil.Name = "tbPaidUntil";
+            tbPaidUntil.ReadOnly = true;
+            tbPaidUntil.Size = new Size(155, 33);
+            tbPaidUntil.TabIndex = 46;
+            // 
+            // tbRemainingPeriod
+            // 
+            tbRemainingPeriod.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            tbRemainingPeriod.Location = new Point(472, 601);
+            tbRemainingPeriod.Name = "tbRemainingPeriod";
+            tbRemainingPeriod.ReadOnly = true;
+            tbRemainingPeriod.Size = new Size(57, 33);
+            tbRemainingPeriod.TabIndex = 47;
             // 
             // VehicleRegistrationForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1390, 777);
+            Controls.Add(tbRemainingPeriod);
+            Controls.Add(tbPaidUntil);
+            Controls.Add(label2);
+            Controls.Add(btnPause);
+            Controls.Add(btnDepart);
+            Controls.Add(btnClearOwner);
+            Controls.Add(btnChangePlace);
             Controls.Add(tbPhone);
             Controls.Add(label18);
             Controls.Add(tbBrand);
@@ -552,16 +592,12 @@
             Controls.Add(cbTariff);
             Controls.Add(label13);
             Controls.Add(label10);
-            Controls.Add(lbDebt);
             Controls.Add(cbStatus);
-            Controls.Add(label9);
             Controls.Add(label8);
             Controls.Add(dgvPayments);
-            Controls.Add(label7);
             Controls.Add(tbSpot);
             Controls.Add(tableLayoutPanel1);
             Controls.Add(label3);
-            Controls.Add(label2);
             Controls.Add(lblState);
             Controls.Add(dataGridView1);
             Controls.Add(btnPlay);
@@ -570,6 +606,7 @@
             Name = "VehicleRegistrationForm";
             StartPosition = FormStartPosition.CenterParent;
             Text = "Регистрация авто";
+            Load += VehicleRegistrationForm_Load;
             ((System.ComponentModel.ISupportInitialize)pbPhoto).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             tableLayoutPanel1.ResumeLayout(false);
@@ -585,7 +622,6 @@
         private DataGridView dataGridView1;
         private Label lblState;
         private Label label1;
-        private Label label2;
         private Label label3;
         private Label label4;
         private Label label5;
@@ -597,14 +633,11 @@
         private TableLayoutPanel tableLayoutPanel1;
         private Button btnPlay;
         private TextBox tbSpot;
-        private Label label7;
         private Button btnEdit;
         private Button btnSave;
         private DataGridView dgvPayments;
         private Label label8;
-        private Label label9;
         private ComboBox cbStatus;
-        private Label lbDebt;
         private Label label10;
         private ComboBox cbTariff;
         private Button btnAddStatus;
@@ -622,5 +655,12 @@
         private Label label18;
         private TextBox tbPhone;
         private Label label13;
+        private Button btnChangePlace;
+        private Button btnClearOwner;
+        private Button btnDepart;
+        private Button btnPause;
+        private Label label2;
+        private TextBox tbPaidUntil;
+        private TextBox tbRemainingPeriod;
     }
 }

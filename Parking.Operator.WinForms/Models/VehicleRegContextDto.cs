@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace Parking.Operator.WinForms.Models;
+﻿namespace Parking.Operator.WinForms.Models;
 
 public sealed class VehicleRegContextDto
 {
@@ -9,26 +7,26 @@ public sealed class VehicleRegContextDto
     public long? VehicleId { get; set; }
     public string? PlateNorm { get; set; }
 
-    // авто
     public string? Brand { get; set; }
     public string? Model { get; set; }
     public string? Color { get; set; }
     public short? Year { get; set; }
 
-    // текущий “выбор” по владельцу/контракту
     public long? SelectedOwnerId { get; set; }
     public long? ActiveContractId { get; set; }
     public long? SelectedTariffId { get; set; }
     public bool CanEditPlace { get; set; }
 
-    // место по контракту
     public string? PlaceNo { get; set; }
-    public bool PlaceReadOnly { get; set; }   // как ты хотел
+    public bool PlaceReadOnly { get; set; }
 
-    // UI/прочее
+    public DateTimeOffset? PaidUntil { get; set; }
+    public string? RemainingPeriod { get; set; }
+    public string StateKind { get; set; } = "none"; // none/active/grace/closed/paused
+
     public decimal Debt { get; set; }
     public string? StateLabel { get; set; }
-    
+
     public PassageRowDto? SelectedPassage { get; set; }
     public List<PassageRowDto> Passages { get; set; } = new();
     public List<PaymentRowDto> Payments { get; set; } = new();
@@ -38,10 +36,16 @@ public sealed class VehicleRegContextDto
     public List<OwnerItemDto> Owners { get; set; } = new();
 
     public List<string> KnownPlates { get; set; } = new();
-
 }
 
-public sealed class TariffItemDto { public long Id { get; set; } public string Name { get; set; } = ""; }
+public sealed class TariffItemDto
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = "";
+    public decimal? Cost { get; set; }
+    public string DisplayName => Cost.HasValue ? $"{Cost.Value:0.##} {Name}" : Name;
+}
+
 public sealed class StatusItemDto { public string Code { get; set; } = ""; public string Name { get; set; } = ""; }
 
 public sealed class OwnerItemDto
@@ -49,7 +53,7 @@ public sealed class OwnerItemDto
     public long OwnerId { get; set; }
     public string Surname { get; set; } = "";
     public string FirstName { get; set; } = "";
-    public string? LastName { get; set; }   
+    public string? LastName { get; set; }
     public string? Phone { get; set; }
     public string? ResidentialAddress { get; set; }
     public string DisplayName => $"{Surname} {FirstName} {LastName}".Trim();
@@ -61,22 +65,23 @@ public sealed class VehicleRegSaveDto
     public string PlateNorm { get; set; } = "";
     public string Direction { get; set; } = "IN";
 
-    // авто
     public string? Brand { get; set; }
     public string? Model { get; set; }
     public string? Color { get; set; }
     public short? Year { get; set; }
 
-    // выборы
     public long? TariffId { get; set; }
     public string? StatusCode { get; set; }
     public long? OwnerId { get; set; }
     public string? Phone { get; set; }
 
-    // место (перезаписываем в ContractPlace)
     public string? PlaceNo { get; set; }
 }
 
+public sealed class PlateActionDto
+{
+    public string PlateNorm { get; set; } = "";
+}
 
 public sealed class PassageRowDto
 {

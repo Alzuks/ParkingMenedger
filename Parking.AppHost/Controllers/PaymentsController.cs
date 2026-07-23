@@ -18,6 +18,7 @@ public sealed class PaymentsController : ControllerBase
     }
 
     // GET /api/payments/context?plateNorm=A123BC&tariffId=1&paidAt=2026-07-19T09:00:00Z&periodCount=1
+    // paidAt здесь оставлен ради старого DTO/формы, но по смыслу это requested start_at периода.
     [HttpGet("context")]
     public async Task<ActionResult<PaymentContextDto>> GetContext(
         [FromQuery] string plateNorm,
@@ -37,9 +38,10 @@ public sealed class PaymentsController : ControllerBase
         if (periodCount <= 0)
             return BadRequest("periodCount must be greater than zero");
 
-        var paidAtUtc = paidAt.ToUniversalTime();
+        var nowUtc = DateTimeOffset.UtcNow;
+        var requestedStartUtc = paidAt.ToUniversalTime();
 
-        await CloseExpiredShortTermPlacesAsync(paidAtUtc, ct);
+        await CloseExpiredContractsAsync(nowUtc, ct);
 
         var tariff = await _db.Tariffs.AsNoTracking()
             .FirstOrDefaultAsync(t => t.Id == tariffId && t.IsActive, ct);
@@ -47,13 +49,7 @@ public sealed class PaymentsController : ControllerBase
         if (tariff == null)
             return BadRequest("Тариф не найден.");
 
-        var rate = await _db.TariffRates.AsNoTracking()
-            .Where(r => r.TariffId == tariffId)
-            .Where(r => r.ValidFrom <= paidAtUtc)
-            .Where(r => r.ValidTo == null || r.ValidTo > paidAtUtc)
-            .OrderByDescending(r => r.ValidFrom)
-            .FirstOrDefaultAsync(ct);
-
+        var rate = await GetRateAsync(tariffId, requestedStartUtc, ct);
         if (rate == null)
             return BadRequest("Не найдена действующая цена тарифа на выбранную дату.");
 
@@ -71,46 +67,24 @@ public sealed class PaymentsController : ControllerBase
         if (employees.Count == 0)
             return BadRequest("Нет активных сотрудников.");
 
-        // Смену руками НЕ выбираем.
-        // Если есть смена на выбранное время — подставляем её сотрудника.
-        // Если смены нет — для админского ввода прошлых оплат даём выбрать сотрудника из списка.
         var shift = await _db.Shifts.AsNoTracking()
             .Include(s => s.Employee)
-            .Where(s => s.StartedAt <= paidAtUtc)
-            .Where(s => s.EndedAt == null || s.EndedAt >= paidAtUtc)
+            .Where(s => s.StartedAt <= nowUtc)
+            .Where(s => s.EndedAt == null || s.EndedAt >= nowUtc)
             .OrderByDescending(s => s.StartedAt)
             .FirstOrDefaultAsync(ct);
 
         var defaultEmployeeId = shift?.EmployeeId ?? employees[0].EmployeeId;
-
         var defaultEmployeeName = shift?.Employee == null
             ? employees[0].Name
             : $"{shift.Employee.Surname} {shift.Employee.FirstName}".Trim();
 
-        var coveredTo = AddPeriod(paidAtUtc, tariff.BillingModel, periodCount);
-
-        long? currentContractId = null;
-        long? defaultPlaceId = null;
-
         var vehicle = await _db.Vehicles.AsNoTracking()
             .FirstOrDefaultAsync(v => v.PlateNorm == plateNorm && v.IsActive, ct);
 
+        ActiveContractInfo? active = null;
         if (vehicle != null)
-        {
-            var currentPlace = await _db.ContractPlaces.AsNoTracking()
-                .Include(cp => cp.Contract)
-                .Where(cp => cp.Contract.ContractVehicles.Any(cv => cv.VehicleId == vehicle.Id))
-                .Where(cp => cp.Status != "Closed")
-                .OrderByDescending(cp => cp.PaidUntil)
-                .ThenByDescending(cp => cp.StartAt)
-                .FirstOrDefaultAsync(ct);
-
-            if (currentPlace != null)
-            {
-                currentContractId = currentPlace.ContractId;
-                defaultPlaceId = currentPlace.PlaceId;
-            }
-        }
+            active = await GetActiveContractInfoAsync(vehicle.Id, track: false, ct);
 
         var allowedPlaceTypeIds = await _db.PlaceTypeTariffs.AsNoTracking()
             .Where(x => x.TariffId == tariffId)
@@ -120,11 +94,18 @@ public sealed class PaymentsController : ControllerBase
         if (allowedPlaceTypeIds.Count == 0)
             return BadRequest("Тариф не привязан ни к одному типу места.");
 
+        long? defaultPlaceId = null;
+        if (active?.Place != null &&
+            active.Place.PlaceTypeId.HasValue &&
+            allowedPlaceTypeIds.Contains(active.Place.PlaceTypeId.Value))
+        {
+            defaultPlaceId = active.Place.Id;
+        }
+
         var candidatePlaces = await _db.Places.AsNoTracking()
             .Where(p => p.IsActive)
             .Where(p => p.PlaceTypeId.HasValue)
             .Where(p => allowedPlaceTypeIds.Contains(p.PlaceTypeId!.Value))
-            .OrderBy(p => p.PlaceNo)
             .Select(p => new PaymentPlaceItemDto
             {
                 PlaceId = p.Id,
@@ -132,16 +113,25 @@ public sealed class PaymentsController : ControllerBase
             })
             .ToListAsync(ct);
 
-        var freePlaces = new List<PaymentPlaceItemDto>();
+        candidatePlaces = candidatePlaces
+            .OrderBy(x => GetPlaceSortKey(x.PlaceNo).Prefix)
+            .ThenBy(x => GetPlaceSortKey(x.PlaceNo).Number)
+            .ThenBy(x => GetPlaceSortKey(x.PlaceNo).Suffix)
+            .ThenBy(x => x.PlaceNo)
+            .ToList();
 
+        var startForCalc = CalculateStartAt(active, tariffId, defaultPlaceId, requestedStartUtc, nowUtc, firstContextCall: true);
+        var preview = await CalculatePreviewAsync(active, tariff, rate.Cost, defaultPlaceId, startForCalc, periodCount, ct);
+
+        var freePlaces = new List<PaymentPlaceItemDto>();
         foreach (var place in candidatePlaces)
         {
             var available = await IsPlaceAvailableAsync(
                 place.PlaceId,
-                paidAtUtc,
-                coveredTo,
+                preview.StartAt,
+                preview.PaidUntil,
                 tariff.BillingModel,
-                currentContractId,
+                active?.Contract.Id,
                 ct);
 
             if (available)
@@ -153,16 +143,18 @@ public sealed class PaymentsController : ControllerBase
             TariffId = tariff.Id,
             TariffName = tariff.Name,
             BillingModel = tariff.BillingModel,
-
             UnitPrice = rate.Cost,
-            TotalAmount = rate.Cost * periodCount,
-
+            TotalAmount = preview.Amount,
+            SuggestedStartAt = preview.StartAt,
+            CoveredTo = preview.PaidUntil,
+            ExtraDays = preview.ExtraDays,
+            IsContinuation = preview.IsContinuation,
+            IsTariffChange = preview.IsTariffChange,
+            IsPlaceChange = preview.IsPlaceChange,
             EmployeeId = defaultEmployeeId,
             EmployeeName = defaultEmployeeName,
             ShiftId = shift?.Id,
-
             DefaultPlaceId = defaultPlaceId,
-
             Employees = employees,
             Places = freePlaces
         });
@@ -191,9 +183,10 @@ public sealed class PaymentsController : ControllerBase
         if (dto.PeriodCount <= 0)
             return BadRequest("PeriodCount must be greater than zero");
 
-        var paidAtUtc = dto.PaidAt.ToUniversalTime();
+        var nowUtc = DateTimeOffset.UtcNow;
+        var requestedStartUtc = dto.PaidAt.ToUniversalTime();
 
-        await CloseExpiredShortTermPlacesAsync(paidAtUtc, ct);
+        await CloseExpiredContractsAsync(nowUtc, ct);
 
         await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
@@ -203,13 +196,7 @@ public sealed class PaymentsController : ControllerBase
         if (tariff == null)
             return BadRequest("Тариф не найден.");
 
-        var rate = await _db.TariffRates
-            .Where(r => r.TariffId == dto.TariffId)
-            .Where(r => r.ValidFrom <= paidAtUtc)
-            .Where(r => r.ValidTo == null || r.ValidTo > paidAtUtc)
-            .OrderByDescending(r => r.ValidFrom)
-            .FirstOrDefaultAsync(ct);
-
+        var rate = await GetRateAsync(dto.TariffId, requestedStartUtc, ct);
         if (rate == null)
             return BadRequest("Не найдена действующая цена тарифа на выбранную дату.");
 
@@ -219,13 +206,10 @@ public sealed class PaymentsController : ControllerBase
         if (employee == null)
             return BadRequest("Сотрудник не найден или неактивен.");
 
-        // Смену руками НЕ принимаем с формы.
-        // Сервер сам ищет смену выбранного сотрудника на дату оплаты.
-        // Для старых вводимых оплат shift может быть null.
         var shift = await _db.Shifts
             .Where(s => s.EmployeeId == dto.EmployeeId)
-            .Where(s => s.StartedAt <= paidAtUtc)
-            .Where(s => s.EndedAt == null || s.EndedAt >= paidAtUtc)
+            .Where(s => s.StartedAt <= nowUtc)
+            .Where(s => s.EndedAt == null || s.EndedAt >= nowUtc)
             .OrderByDescending(s => s.StartedAt)
             .FirstOrDefaultAsync(ct);
 
@@ -239,10 +223,7 @@ public sealed class PaymentsController : ControllerBase
             return BadRequest("У выбранного места не указан тип.");
 
         var placeAllowed = await _db.PlaceTypeTariffs.AsNoTracking()
-            .AnyAsync(x =>
-                x.TariffId == dto.TariffId &&
-                x.PlaceTypeId == place.PlaceTypeId.Value,
-                ct);
+            .AnyAsync(x => x.TariffId == dto.TariffId && x.PlaceTypeId == place.PlaceTypeId.Value, ct);
 
         if (!placeAllowed)
             return BadRequest("Выбранное место не соответствует тарифу.");
@@ -263,126 +244,68 @@ public sealed class PaymentsController : ControllerBase
             await _db.SaveChangesAsync(ct);
         }
 
-        var ownerId = dto.OwnerId ?? await GetOrCreateAnonymousOwnerIdAsync(ct);
+        var ownerId = dto.OwnerId ?? await GetVehicleOwnerIdAsync(vehicle.Id, ct) ?? await GetOrCreateAnonymousOwnerIdAsync(ct);
+        var active = await GetActiveContractInfoAsync(vehicle.Id, track: true, ct);
 
-        var contract = await FindOrCreateContractForVehicleAsync(
-            vehicle.Id,
-            ownerId,
-            ct);
-
-        var cvExists = await _db.ContractVehicles
-            .AnyAsync(x =>
-                x.ContractId == contract.Id &&
-                x.VehicleId == vehicle.Id,
-                ct);
-
-        if (!cvExists)
-        {
-            _db.ContractVehicles.Add(new ContractVehicleRow
-            {
-                ContractId = contract.Id,
-                VehicleId = vehicle.Id
-            });
-
-            await _db.SaveChangesAsync(ct);
-        }
-
-        var existingContractPlace = await _db.ContractPlaces
-            .FirstOrDefaultAsync(cp =>
-                cp.ContractId == contract.Id &&
-                cp.PlaceId == dto.PlaceId,
-                ct);
-
-        var preliminaryCoveredFrom =
-            existingContractPlace != null &&
-            existingContractPlace.PaidUntil.HasValue &&
-            existingContractPlace.PaidUntil.Value > paidAtUtc &&
-            existingContractPlace.Status != "Closed"
-                ? existingContractPlace.PaidUntil.Value
-                : paidAtUtc;
-
-        var preliminaryCoveredTo = AddPeriod(
-            preliminaryCoveredFrom,
-            tariff.BillingModel,
-            dto.PeriodCount);
+        var startForCalc = CalculateStartAt(active, dto.TariffId, dto.PlaceId, requestedStartUtc, nowUtc, firstContextCall: false);
+        var preview = await CalculatePreviewAsync(active, tariff, rate.Cost, dto.PlaceId, startForCalc, dto.PeriodCount, ct);
 
         var placeAvailable = await IsPlaceAvailableAsync(
             dto.PlaceId,
-            preliminaryCoveredFrom,
-            preliminaryCoveredTo,
+            preview.StartAt,
+            preview.PaidUntil,
             tariff.BillingModel,
-            contract.Id,
+            active?.Contract.Id,
             ct);
 
         if (!placeAvailable)
             return BadRequest("Место уже занято на выбранный период.");
 
+        ContractRow contract;
         ContractPlaceRow contractPlace;
 
-        if (existingContractPlace == null)
+        if (active == null)
         {
-            contractPlace = new ContractPlaceRow
-            {
-                ContractId = contract.Id,
-                PlaceId = dto.PlaceId,
-                TariffId = dto.TariffId,
-
-                Status = "Active",
-                StartAt = paidAtUtc,
-                PaidUntil = paidAtUtc,
-
-                PauseBalanceDays = 0,
-                PausedAt = null
-            };
-
+            contract = await CreateContractAsync(ownerId, vehicle.Id, ct);
+            contractPlace = CreateContractPlace(contract.Id, dto.PlaceId, dto.TariffId, preview.StartAt, preview.PaidUntil);
             _db.ContractPlaces.Add(contractPlace);
-            await _db.SaveChangesAsync(ct);
+        }
+        else if (preview.IsContinuation)
+        {
+            contract = active.Contract;
+            contract.CustomerOwnerId = ownerId;
+            contract.Status = "Active";
+
+            contractPlace = active.ContractPlace;
+            contractPlace.Status = "Active";
+            contractPlace.StartAt = preview.StartAt;
+            contractPlace.PausedAt = null;
+            contractPlace.PauseBalanceDays = 0;
+            contractPlace.PaidUntil = preview.PaidUntil;
         }
         else
         {
-            contractPlace = existingContractPlace;
+            CloseContract(active.Contract, active.ContractPlace, nowUtc);
 
-            contractPlace.TariffId = dto.TariffId;
-            contractPlace.Status = "Active";
-            contractPlace.PausedAt = null;
-
-            if (!contractPlace.PaidUntil.HasValue)
-                contractPlace.PaidUntil = paidAtUtc;
+            contract = await CreateContractAsync(ownerId, vehicle.Id, ct);
+            contractPlace = CreateContractPlace(contract.Id, dto.PlaceId, dto.TariffId, preview.StartAt, preview.PaidUntil);
+            _db.ContractPlaces.Add(contractPlace);
         }
-
-        var coveredFrom =
-            contractPlace.PaidUntil.HasValue &&
-            contractPlace.PaidUntil.Value > paidAtUtc
-                ? contractPlace.PaidUntil.Value
-                : paidAtUtc;
-
-        var coveredTo = AddPeriod(
-            coveredFrom,
-            tariff.BillingModel,
-            dto.PeriodCount);
-
-        var amount = rate.Cost * dto.PeriodCount;
 
         var payment = new PaymentRow
         {
             ContractId = contract.Id,
             PlaceId = contractPlace.PlaceId,
-
-            Amount = amount,
-            PaidAt = paidAtUtc,
+            Amount = preview.Amount,
+            PaidAt = nowUtc,
             Method = "cash",
-
             EmployeeId = dto.EmployeeId,
             ShiftId = shift?.Id,
-
-            CoveredFrom = coveredFrom,
-            CoveredTo = coveredTo
+            CoveredFrom = preview.StartAt,
+            CoveredTo = preview.PaidUntil
         };
 
         _db.Payments.Add(payment);
-
-        contractPlace.PaidUntil = coveredTo;
-        contractPlace.Status = "Active";
 
         await SaveStatusAsync(dto.PlateNorm, dto.StatusCode, ct);
 
@@ -394,12 +317,123 @@ public sealed class PaymentsController : ControllerBase
             PaymentId = payment.Id,
             ContractId = contract.Id,
             PlaceId = contractPlace.PlaceId,
-
             PaidAt = payment.PaidAt,
-            CoveredFrom = coveredFrom,
-            CoveredTo = coveredTo,
+            CoveredFrom = preview.StartAt,
+            CoveredTo = preview.PaidUntil,
             Amount = payment.Amount
         });
+    }
+
+    private async Task<ActiveContractInfo?> GetActiveContractInfoAsync(long vehicleId, bool track, CancellationToken ct)
+    {
+        var query = _db.ContractPlaces
+            .Include(cp => cp.Contract)
+            .Include(cp => cp.Place)
+            .Include(cp => cp.Tariff)
+            .Where(cp => cp.Contract.Status == "Active")
+            .Where(cp => cp.Status == "Active" || cp.Status == "Paused")
+            .Where(cp => cp.Contract.ContractVehicles.Any(cv => cv.VehicleId == vehicleId));
+
+        if (!track)
+            query = query.AsNoTracking();
+
+        var cp = await query
+            .OrderByDescending(cp => cp.StartAt)
+            .ThenByDescending(cp => cp.PaidUntil)
+            .FirstOrDefaultAsync(ct);
+        return cp == null ? null : new ActiveContractInfo(cp.Contract, cp, cp.Place, cp.Tariff);
+    }
+
+    private DateTimeOffset CalculateStartAt(
+        ActiveContractInfo? active,
+        long newTariffId,
+        long? newPlaceId,
+        DateTimeOffset requestedStartUtc,
+        DateTimeOffset nowUtc,
+        bool firstContextCall)
+    {
+        if (active?.ContractPlace.PaidUntil == null)
+            return requestedStartUtc;
+
+        var oldPaidUntil = active.ContractPlace.PaidUntil.Value;
+        var sameTariff = active.ContractPlace.TariffId == newTariffId;
+        var samePlace = newPlaceId.HasValue && active.ContractPlace.PlaceId == newPlaceId.Value;
+
+        if (sameTariff && samePlace)
+        {
+            // Первый заход формы оплаты автоподставляет текущий paid_until.
+            // Если оператор потом поставит другую дату — будет использована она.
+            if (firstContextCall)
+                return oldPaidUntil;
+
+            return requestedStartUtc > oldPaidUntil ? requestedStartUtc : oldPaidUntil;
+        }
+
+        // Смена тарифа/места начинается с даты в форме; по умолчанию это сейчас.
+        return requestedStartUtc;
+    }
+
+    private async Task<PaymentPreview> CalculatePreviewAsync(
+        ActiveContractInfo? active,
+        TariffRow newTariff,
+        decimal newCost,
+        long? newPlaceId,
+        DateTimeOffset startAt,
+        int periodCount,
+        CancellationToken ct)
+    {
+        var paidUntil = AddPeriod(startAt, newTariff.BillingModel, periodCount);
+        var amount = newCost * periodCount;
+        var extraDays = 0;
+
+        var isContinuation = active != null &&
+            active.ContractPlace.Status == "Active" &&
+            active.ContractPlace.TariffId == newTariff.Id &&
+            newPlaceId.HasValue &&
+            active.ContractPlace.PlaceId == newPlaceId.Value;
+
+        var isTariffChange = active != null && active.ContractPlace.TariffId != newTariff.Id;
+        var isPlaceChange = active != null && newPlaceId.HasValue && active.ContractPlace.PlaceId != newPlaceId.Value;
+
+        // Чистая смена места в том же тарифе — деньги не берём, переносим остаток срока.
+        if (active != null && isPlaceChange && !isTariffChange && active.ContractPlace.PaidUntil.HasValue)
+        {
+            amount = 0m;
+            paidUntil = active.ContractPlace.PaidUntil.Value;
+        }
+
+        // Пересчёт только для месячных тарифов.
+        if (active != null &&
+            isTariffChange &&
+            active.ContractPlace.PaidUntil.HasValue &&
+            active.Tariff.BillingModel == "Monthly" &&
+            newTariff.BillingModel == "Monthly" &&
+            active.ContractPlace.PaidUntil.Value > startAt)
+        {
+            var oldRate = await GetRateAsync(active.ContractPlace.TariffId, startAt, ct);
+            if (oldRate != null)
+            {
+                var oldCost = oldRate.Cost;
+                var daysLeft = Math.Max(0, (active.ContractPlace.PaidUntil.Value.Date - startAt.Date).Days);
+                var chargedDays = Math.Max(0, daysLeft - 1);
+
+                if (newCost > oldCost)
+                {
+                    var credit = chargedDays * oldCost / 31m;
+                    amount = Math.Max(0m, newCost * periodCount - credit);
+                }
+                else if (newCost < oldCost)
+                {
+                    var remainingMoney = chargedDays * oldCost / 30m;
+                    var newDayCost = newCost / 30m;
+                    extraDays = newDayCost <= 0m ? 0 : (int)Math.Floor(remainingMoney / newDayCost);
+                    amount = newCost * periodCount;
+                    paidUntil = AddPeriod(startAt, newTariff.BillingModel, periodCount).AddDays(extraDays);
+                }
+            }
+        }
+
+        return new PaymentPreview(startAt, paidUntil, decimal.Round(amount, 2), extraDays, isContinuation, isTariffChange, isPlaceChange);
     }
 
     private async Task<bool> IsPlaceAvailableAsync(
@@ -410,58 +444,95 @@ public sealed class PaymentsController : ControllerBase
         long? allowedContractId,
         CancellationToken ct)
     {
-        var openedPlaces = await _db.ContractPlaces.AsNoTracking()
+        var rows = await _db.ContractPlaces.AsNoTracking()
             .Include(cp => cp.Tariff)
             .Where(cp => cp.PlaceId == placeId)
-            .Where(cp => cp.Status != "Closed")
+            .Where(cp => cp.Status == "Active" || cp.Status == "Paused")
             .ToListAsync(ct);
 
-        foreach (var cp in openedPlaces)
+        foreach (var cp in rows)
         {
-            // Это место уже в этом же договоре.
-            // Значит это продление/повторная оплата, а не чужая занятость.
             if (allowedContractId.HasValue && cp.ContractId == allowedContractId.Value)
                 continue;
 
-            // Пока нет paused_until.
-            // Поэтому паузу временно разрешаем только под Hourly/Daily.
             if (cp.Status == "Paused")
             {
-                if (billingModel is "Hourly" or "Daily")
-                    continue;
+                if (cp.PausedAt.HasValue)
+                {
+                    var pauseDeadline = cp.PausedAt.Value.AddMonths(3);
+                    if (billingModel is "Hourly" or "Daily" && to <= pauseDeadline)
+                        continue;
+                }
 
                 return false;
             }
 
-            return false;
+            if (!cp.PaidUntil.HasValue)
+                return false;
+
+            var overlaps = cp.StartAt < to && cp.PaidUntil.Value > from;
+            if (overlaps)
+                return false;
         }
 
         return true;
     }
 
-    private async Task CloseExpiredShortTermPlacesAsync(
-        DateTimeOffset nowUtc,
-        CancellationToken ct)
+    private async Task CloseExpiredContractsAsync(DateTimeOffset nowUtc, CancellationToken ct)
     {
         var rows = await _db.ContractPlaces
+            .Include(cp => cp.Contract)
             .Include(cp => cp.Tariff)
-            .Where(cp => cp.Status == "Active")
-            .Where(cp => cp.PaidUntil != null)
-            .Where(cp =>
-                cp.Tariff.BillingModel == "Hourly" ||
-                cp.Tariff.BillingModel == "Daily")
+            .Where(cp => cp.Status == "Active" || cp.Status == "Paused")
             .ToListAsync(ct);
 
         foreach (var cp in rows)
         {
-            var graceHours = cp.Tariff.GracePeriodDays;
-            var closeAt = cp.PaidUntil!.Value.AddHours(graceHours);
+            if (cp.Status == "Paused")
+            {
+                if (cp.PausedAt.HasValue && cp.PausedAt.Value.AddMonths(3) <= nowUtc)
+                {
+                    cp.Status = "Closed";
+                    cp.Contract.Status = "Closed";
+                    cp.PauseBalanceDays = 0;
+                    cp.PaidUntil = null;
+                }
 
+                continue;
+            }
+
+            if (!cp.PaidUntil.HasValue)
+                continue;
+
+            var graceHours = cp.Tariff.GracePeriodDays;
+            var closeAt = cp.PaidUntil.Value.AddHours(graceHours);
             if (closeAt <= nowUtc)
+            {
                 cp.Status = "Closed";
+                cp.Contract.Status = "Closed";
+            }
         }
 
         await _db.SaveChangesAsync(ct);
+    }
+
+    private async Task<TariffRateRow?> GetRateAsync(long tariffId, DateTimeOffset atUtc, CancellationToken ct)
+    {
+        return await _db.TariffRates.AsNoTracking()
+            .Where(r => r.TariffId == tariffId)
+            .Where(r => r.ValidFrom <= atUtc)
+            .Where(r => r.ValidTo == null || r.ValidTo > atUtc)
+            .OrderByDescending(r => r.ValidFrom)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    private async Task<long?> GetVehicleOwnerIdAsync(long vehicleId, CancellationToken ct)
+    {
+        return await _db.VehicleOwners.AsNoTracking()
+            .Where(x => x.VehicleId == vehicleId)
+            .OrderByDescending(x => x.IsPayer)
+            .Select(x => (long?)x.OwnerId)
+            .FirstOrDefaultAsync(ct);
     }
 
     private async Task<long> GetOrCreateAnonymousOwnerIdAsync(CancellationToken ct)
@@ -491,28 +562,9 @@ public sealed class PaymentsController : ControllerBase
         return owner.Id;
     }
 
-    private async Task<ContractRow> FindOrCreateContractForVehicleAsync(
-        long vehicleId,
-        long ownerId,
-        CancellationToken ct)
+    private async Task<ContractRow> CreateContractAsync(long ownerId, long vehicleId, CancellationToken ct)
     {
-        var contract = await _db.Contracts
-            .Where(c => c.ContractVehicles.Any(cv => cv.VehicleId == vehicleId))
-            .OrderByDescending(c => c.Id)
-            .FirstOrDefaultAsync(ct);
-
-        if (contract != null)
-        {
-            if (contract.CustomerOwnerId != ownerId)
-                contract.CustomerOwnerId = ownerId;
-
-            if (contract.Status == "Closed")
-                contract.Status = "Active";
-
-            return contract;
-        }
-
-        contract = new ContractRow
+        var contract = new ContractRow
         {
             CustomerOwnerId = ownerId,
             Status = "Active"
@@ -521,17 +573,46 @@ public sealed class PaymentsController : ControllerBase
         _db.Contracts.Add(contract);
         await _db.SaveChangesAsync(ct);
 
+        _db.ContractVehicles.Add(new ContractVehicleRow
+        {
+            ContractId = contract.Id,
+            VehicleId = vehicleId
+        });
+
+        await _db.SaveChangesAsync(ct);
         return contract;
     }
 
-    private async Task SaveStatusAsync(
-        string plateNorm,
-        string? statusCode,
-        CancellationToken ct)
+    private static ContractPlaceRow CreateContractPlace(
+        long contractId,
+        long placeId,
+        long tariffId,
+        DateTimeOffset startAt,
+        DateTimeOffset paidUntil)
     {
-        statusCode = string.IsNullOrWhiteSpace(statusCode)
-            ? "Normal"
-            : statusCode.Trim();
+        return new ContractPlaceRow
+        {
+            ContractId = contractId,
+            PlaceId = placeId,
+            TariffId = tariffId,
+            Status = "Active",
+            StartAt = startAt,
+            PaidUntil = paidUntil,
+            PauseBalanceDays = 0,
+            PausedAt = null
+        };
+    }
+
+    private static void CloseContract(ContractRow contract, ContractPlaceRow contractPlace, DateTimeOffset nowUtc)
+    {
+        contract.Status = "Closed";
+        contractPlace.Status = "Closed";
+        contractPlace.PausedAt = null;
+    }
+
+    private async Task SaveStatusAsync(string plateNorm, string? statusCode, CancellationToken ct)
+    {
+        statusCode = string.IsNullOrWhiteSpace(statusCode) ? "Normal" : statusCode.Trim();
 
         var statusType = await _db.WatchlistTypes
             .FirstOrDefaultAsync(x => x.Code == statusCode && x.IsActive, ct);
@@ -558,10 +639,7 @@ public sealed class PaymentsController : ControllerBase
         }
     }
 
-    private static DateTimeOffset AddPeriod(
-        DateTimeOffset from,
-        string billingModel,
-        int count)
+    private static DateTimeOffset AddPeriod(DateTimeOffset from, string billingModel, int count)
     {
         return billingModel switch
         {
@@ -571,4 +649,18 @@ public sealed class PaymentsController : ControllerBase
             _ => throw new InvalidOperationException($"Unknown billing model: {billingModel}")
         };
     }
+
+    private static (string Prefix, int Number, string Suffix) GetPlaceSortKey(string? placeNo)
+    {
+        placeNo = (placeNo ?? "").Trim();
+
+        var prefix = new string(placeNo.TakeWhile(c => !char.IsDigit(c)).ToArray());
+        var digits = new string(placeNo.SkipWhile(c => !char.IsDigit(c)).TakeWhile(char.IsDigit).ToArray());
+        var suffix = digits.Length == 0 ? placeNo : placeNo[(prefix.Length + digits.Length)..];
+
+        return (prefix, int.TryParse(digits, out var n) ? n : int.MaxValue, suffix);
+    }
+
+    private sealed record ActiveContractInfo(ContractRow Contract, ContractPlaceRow ContractPlace, PlaceRow Place, TariffRow Tariff);
+    private sealed record PaymentPreview(DateTimeOffset StartAt, DateTimeOffset PaidUntil, decimal Amount, int ExtraDays, bool IsContinuation, bool IsTariffChange, bool IsPlaceChange);
 }

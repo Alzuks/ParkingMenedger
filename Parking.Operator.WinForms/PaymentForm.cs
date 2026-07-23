@@ -21,9 +21,13 @@ public partial class paymentForm : Form
     private readonly long _tariffId;
     private readonly string _statusCode;
     private readonly bool _canSelectEmployee;
+    private readonly bool _forceChangePlace;
 
     private PaymentContextDto? _ctx;
     private bool _loading;
+    private bool _suggestedStartApplied;
+    private bool _bindingPlaces;
+    private long? _manualPlaceId;
 
     public paymentForm(
         ApiClient api,
@@ -32,7 +36,8 @@ public partial class paymentForm : Form
         long? ownerId,
         long tariffId,
         string? statusCode,
-        bool canSelectEmployee)
+        bool canSelectEmployee,
+        bool forceChangePlace = false)
     {
         InitializeComponent();
 
@@ -43,10 +48,17 @@ public partial class paymentForm : Form
         _tariffId = tariffId;
         _statusCode = string.IsNullOrWhiteSpace(statusCode) ? "Normal" : statusCode.Trim();
         _canSelectEmployee = canSelectEmployee;
+        _forceChangePlace = forceChangePlace;
 
         AcceptButton = btnPay;
 
         cbPlace.DropDownStyle = ComboBoxStyle.DropDownList;
+        cbPlace.SelectedValueChanged += (_, __) =>
+        {
+            if (_bindingPlaces) return;
+            if (cbPlace.SelectedValue is long placeId)
+                _manualPlaceId = placeId;
+        };
 
         payEmployee.DropDownStyle = ComboBoxStyle.DropDownList;
         payEmployee.Enabled = _canSelectEmployee;
@@ -98,13 +110,13 @@ public partial class paymentForm : Form
 
             payDate.Text = now.ToString("dd.MM.yyyy");
             payTime.Text = now.ToString("HH:mm");
-
-            await ReloadContextAsync();
         }
         finally
         {
             _loading = false;
         }
+
+        await ReloadContextAsync();
     }
 
     private DateTimeOffset GetPaidAt()
@@ -133,24 +145,47 @@ public partial class paymentForm : Form
     private async Task ReloadContextAsync()
     {
         long? previouslySelectedEmployeeId = null;
+        long? previouslySelectedPlaceId = null;
 
         if (payEmployee.SelectedValue is long oldEmpId)
             previouslySelectedEmployeeId = oldEmpId;
 
+        if (cbPlace.SelectedValue is long oldPlaceId)
+            previouslySelectedPlaceId = oldPlaceId;
+
         try
         {
-            var paidAt = GetPaidAt();
+            var startAt = GetPaidAt();
             var count = GetPeriodCount();
 
             _ctx = await _api.GetPaymentContextAsync(
                 _plateNorm,
                 _tariffId,
-                paidAt,
+                startAt,
                 count,
                 CancellationToken.None);
 
             if (_ctx == null)
                 return;
+
+            if (!_suggestedStartApplied && _ctx.SuggestedStartAt != default)
+            {
+                var suggested = _ctx.SuggestedStartAt.LocalDateTime;
+                payDate.Text = suggested.ToString("dd.MM.yyyy");
+                payTime.Text = suggested.ToString("HH:mm");
+                _suggestedStartApplied = true;
+
+                startAt = GetPaidAt();
+                _ctx = await _api.GetPaymentContextAsync(
+                    _plateNorm,
+                    _tariffId,
+                    startAt,
+                    count,
+                    CancellationToken.None);
+
+                if (_ctx == null)
+                    return;
+            }
 
             lbDayMonth.Text = _ctx.BillingModel switch
             {
@@ -178,13 +213,39 @@ public partial class paymentForm : Form
 
             payEmployee.Enabled = _canSelectEmployee;
 
-            cbPlace.DataSource = null;
-            cbPlace.DisplayMember = nameof(PaymentPlaceItemDto.PlaceNo);
-            cbPlace.ValueMember = nameof(PaymentPlaceItemDto.PlaceId);
-            cbPlace.DataSource = _ctx.Places;
+            var preferredPlaceId = _manualPlaceId ?? previouslySelectedPlaceId;
 
-            if (_ctx.DefaultPlaceId.HasValue)
-                cbPlace.SelectedValue = _ctx.DefaultPlaceId.Value;
+            _bindingPlaces = true;
+            try
+            {
+                cbPlace.DataSource = null;
+                cbPlace.DisplayMember = nameof(PaymentPlaceItemDto.PlaceNo);
+                cbPlace.ValueMember = nameof(PaymentPlaceItemDto.PlaceId);
+                cbPlace.DataSource = _ctx.Places;
+
+                if (preferredPlaceId.HasValue &&
+                    _ctx.Places.Any(p => p.PlaceId == preferredPlaceId.Value))
+                {
+                    cbPlace.SelectedValue = preferredPlaceId.Value;
+                }
+                else if (_forceChangePlace)
+                {
+                    cbPlace.SelectedIndex = -1;
+                }
+                else if (_ctx.DefaultPlaceId.HasValue &&
+                         _ctx.Places.Any(p => p.PlaceId == _ctx.DefaultPlaceId.Value))
+                {
+                    cbPlace.SelectedValue = _ctx.DefaultPlaceId.Value;
+                }
+                else
+                {
+                    cbPlace.SelectedIndex = -1;
+                }
+            }
+            finally
+            {
+                _bindingPlaces = false;
+            }
 
             tbSum.Text = _ctx.TotalAmount.ToString("0.00");
         }
