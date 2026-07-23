@@ -103,7 +103,7 @@
             // 
             // lblState
             // 
-            lblState.BackColor = Color.FromArgb(0, 192, 0);
+            lblState.BackColor = Color.White;
             lblState.Location = new Point(1018, 334);
             lblState.Name = "lblState";
             lblState.Size = new Size(367, 43);
@@ -551,13 +551,13 @@
             tbPaidUntil.Location = new Point(311, 601);
             tbPaidUntil.Name = "tbPaidUntil";
             tbPaidUntil.ReadOnly = true;
-            tbPaidUntil.Size = new Size(155, 33);
+            tbPaidUntil.Size = new Size(167, 33);
             tbPaidUntil.TabIndex = 46;
             // 
             // tbRemainingPeriod
             // 
             tbRemainingPeriod.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
-            tbRemainingPeriod.Location = new Point(472, 601);
+            tbRemainingPeriod.Location = new Point(484, 601);
             tbRemainingPeriod.Name = "tbRemainingPeriod";
             tbRemainingPeriod.ReadOnly = true;
             tbRemainingPeriod.Size = new Size(57, 33);
