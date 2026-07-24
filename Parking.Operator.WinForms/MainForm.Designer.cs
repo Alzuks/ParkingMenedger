@@ -147,7 +147,6 @@
             lblCapacity.Name = "lblCapacity";
             lblCapacity.Size = new Size(133, 38);
             lblCapacity.TabIndex = 2;
-            lblCapacity.Text = "90/150";
             lblCapacity.TextAlign = ContentAlignment.MiddleCenter;
             lblCapacity.Click += lblCapacity_Click;
             // 

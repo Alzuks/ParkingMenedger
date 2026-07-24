@@ -27,7 +27,21 @@ public partial class MainForm : Form
     {
         InitializeComponent();
 
-     var config = new ConfigurationBuilder()
+        KeyPreview = true;
+
+        KeyDown += async (_, e) =>
+        {
+            if (e.KeyCode != Keys.Escape)
+                return;
+
+            e.Handled = true;
+            e.SuppressKeyPress = true;
+
+            txtSearch.Text = "";
+            await ReloadDashboardAsync();
+        };
+
+        var config = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: false)
     .Build();
